@@ -41,6 +41,7 @@ public class MosaicMaker<S> {
 	private TileMatcher<S> mMatcher;
 	private boolean mUseAlpha;
 	private ColorMetric mColorMetric;
+	private boolean cutResultToSourceAlpha;
 
     public interface ProgressCallback extends PercentProgressListener {
         boolean isCancelled();
@@ -72,6 +73,23 @@ public class MosaicMaker<S> {
         setColorMetric(metric);
 	}
 
+
+    public void setCutResultToSourceAlpha(boolean cutResultToSourceAlpha) {
+        this.cutResultToSourceAlpha = cutResultToSourceAlpha;
+    }
+
+    private AbstractBitmap finishMosaic(AbstractBitmap source, AbstractBitmap mosaic) {
+        if (mosaic == null) {
+            return null;
+        }
+        if (cutResultToSourceAlpha && source != null) {
+            AbstractCanvas canvas = AbstractCanvasFactory.getInstance().makeCanvas(mosaic);
+            canvas.drawBitmapUsingPorterDuff(source, 0, 0, PorterDuffMode.DESTINATION_IN);
+            return canvas.obtainImage();
+        }
+        return mosaic;
+    }
+
 	public void setUseAlpha(boolean useAlpha) {
 		mUseAlpha = useAlpha;
 		mMatcher.setUseAlpha(useAlpha);
@@ -88,13 +106,15 @@ public class MosaicMaker<S> {
     public AbstractBitmap makeMultiRect(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
         Reconstructor reconstructor = new MultiRectReconstructor(source,
                 wantedRows, wantedColumns, mergeFactor, mUseAlpha, mColorMetric);
-        return make(mMatcher, mBitmapSource, reconstructor, progress);
+        AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
+        return finishMosaic(source, result);
     }
 
     public AbstractBitmap makeRect(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
         Reconstructor reconstructor = new RectReconstructor(source,
                 wantedRows, wantedColumns);
-        return make(mMatcher, mBitmapSource, reconstructor, progress);
+        AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
+        return finishMosaic(source, result);
     }
 
     public AbstractBitmap makeAutoLayer(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
@@ -103,7 +123,7 @@ public class MosaicMaker<S> {
 		multiProgress.nextStep();
         AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, multiProgress);
 		multiProgress.nextStep();
-        return result;
+        return finishMosaic(source, result);
     }
 
     public AbstractBitmap makeFixedLayer(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
@@ -112,11 +132,10 @@ public class MosaicMaker<S> {
         multiProgress.nextStep();
         AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, multiProgress);
         multiProgress.nextStep();
-        return result;
+        return finishMosaic(source, result);
     }
 
-    public static AbstractBitmap makePattern(AbstractBitmap source, String patternName,
-                                     boolean useAlpha, ColorMetric metric,
+    public AbstractBitmap makePattern(AbstractBitmap source, String patternName,
                                      int rows, int columns, ProgressCallback progress) {
         MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
         PatternReconstructor reconstructor;
@@ -131,17 +150,16 @@ public class MosaicMaker<S> {
                 break;
         }
         multiProgress.nextStep();
-        AbstractBitmap result = make(reconstructor.<Void>makeMatcher(useAlpha, metric), reconstructor
+        AbstractBitmap result = make(reconstructor.<Void>makeMatcher(usesAlpha(), getColorMetric()), reconstructor
                         .<Void>makeSource(),
                 reconstructor,
                 multiProgress);
         multiProgress.nextStep();
-        return result;
+        return finishMosaic(source, result);
     }
 
 	private static <S>AbstractBitmap make(TileMatcher<S> matcher, BitmapSource<S> source, Reconstructor
-            reconstructor,
-                               ProgressCallback progress) {
+            reconstructor, ProgressCallback progress) {
 		if (reconstructor == null) {
 			throw new IllegalArgumentException("No reconstructor given to make mosaic.");
 		}

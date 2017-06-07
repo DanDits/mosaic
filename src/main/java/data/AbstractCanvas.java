@@ -15,4 +15,8 @@ public interface AbstractCanvas {
     void drawCircle(int centerX, int centerY, int radius, int color);
 
     void drawMultiplicativly(AbstractBitmap image);
+
+    void drawBitmapUsingPorterDuff(AbstractBitmap bitmap, int x, int y, PorterDuffMode mode);
+
+    AbstractBitmap obtainImage();
 }

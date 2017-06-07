@@ -33,6 +33,7 @@ import java.util.Optional;
  *
  */
 public abstract class TileMatcher<S> {
+	//TODO add way to filter tiles before calculating best match (or using the hashed) to filter for example to (almost) fitting aspect ratio
 	private static final int CACHE_SIZE = 64;
     private static final ColorMetric DEFAULT_COLOR_METRIC = ColorMetric.Euclid2.INSTANCE;
 	public static final int REUSE_UNLIMITED = -1;

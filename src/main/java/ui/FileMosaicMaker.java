@@ -1,6 +1,7 @@
 package ui;
 
 import data.*;
+import matching.RandomMatcher;
 import matching.SimpleLinearTileMatcher;
 import matching.TileMatcher;
 import reconstruction.pattern.CirclePatternReconstructor;
@@ -9,6 +10,7 @@ import util.image.ColorMetric;
 
 import java.io.File;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,9 +32,16 @@ public class FileMosaicMaker {
                 .flatMap(Set::stream).collect(Collectors.toSet());
         System.out.println("Loaded " + tiles.size() + " tiles from " + analyzationFiles.size() + " analyzation files.");
         BitmapSource<String> source = new FileBitmapSource();
+
         TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
-        matcher.setTileReuseLimit(10);
-        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+        matcher.setTileReuseLimit(3);
+
+        RandomMatcher<String> matcherRandom = new RandomMatcher<>(tiles);
+        matcherRandom.setTileReuseLimit(TileMatcher.REUSE_NONE);
+        matcherRandom.setRandom(new Random(45)); // 45 ist gut (großes Brot)
+
+        mMosaicMaker = new MosaicMaker<>(matcherRandom, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+        mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 
     public AbstractBitmap makeRect(File sourceFile, int wantedRows, int wantedColumns, MosaicMaker.ProgressCallback progress) {
@@ -63,8 +72,7 @@ public class FileMosaicMaker {
             return null;
         }
         this.progress = progress;
-        return MosaicMaker.makePattern(bitmap, CirclePatternReconstructor.NAME,
-                mMosaicMaker.usesAlpha(), mMosaicMaker.getColorMetric(),
+        return mMosaicMaker.makePattern(bitmap, CirclePatternReconstructor.NAME,
                 rows, columns, progress);
     }
 
@@ -93,8 +101,7 @@ public class FileMosaicMaker {
             return null;
         }
         this.progress = progress;
-        return MosaicMaker.makePattern(bitmap, LegoPatternReconstructor.NAME,
-                mMosaicMaker.usesAlpha(), mMosaicMaker.getColorMetric(),
+        return mMosaicMaker.makePattern(bitmap, LegoPatternReconstructor.NAME,
                 rows, columns, progress);
     }
 

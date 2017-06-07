@@ -3,6 +3,7 @@ package awt;
 import data.AbstractBitmap;
 import data.AbstractCanvas;
 import data.AbstractColor;
+import data.PorterDuffMode;
 import util.image.BlendComposite;
 
 import java.awt.*;
@@ -14,11 +15,13 @@ import java.awt.image.BufferedImage;
 public class Canvas implements AbstractCanvas {
 
     private final BufferedImage base;
+    private final AbstractBitmap bitmap;
     private Graphics graphics;
     private static final Color TRANSPARENT = new Color(0, 0, 0, 0); // rgba
 
-    public Canvas(AbstractBitmap base) {
-        this.base = obtainImage(base);
+    public Canvas(AbstractBitmap bitmap) {
+        this.base = obtainImage(bitmap);
+        this.bitmap = bitmap;
     }
 
 
@@ -34,7 +37,7 @@ public class Canvas implements AbstractCanvas {
         graphics.drawImage(obtainImage(bitmap), x, y, null);
     }
 
-    public BufferedImage getImage() {
+    public BufferedImage stopEditing() {
         if (graphics != null) {
             graphics.dispose();
             graphics = null;
@@ -61,12 +64,73 @@ public class Canvas implements AbstractCanvas {
         graphics.fillRect(0, 0, base.getWidth(), base.getHeight());
     }
 
+    public void drawBitmapUsingPorterDuff(AbstractBitmap bitmap, int x, int y, PorterDuffMode mode) {
+        ensureGraphics();
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        BufferedImage image = obtainImage(bitmap);
+        Composite prevComp = graphics2D.getComposite();
+        Composite comp = porterDuffToComposite(mode);
+        graphics2D.setComposite(comp);
+        graphics2D.drawImage(image, x, y, null);
+        graphics2D.setComposite(prevComp);
+    }
+
+    @Override
+    public AbstractBitmap obtainImage() {
+        stopEditing();
+        return bitmap;
+    }
+
+    private static Composite porterDuffToComposite(PorterDuffMode mode) {
+        int key;
+        switch (mode) {
+            case CLEAR:
+                key = AlphaComposite.CLEAR;
+                break;
+            case DESTINATION:
+                key = AlphaComposite.DST;
+                break;
+            case DESTINATION_IN:
+                key = AlphaComposite.DST_IN;
+                break;
+            case DESTINATION_OUT:
+                key = AlphaComposite.DST_OUT;
+                break;
+            case DESTINATION_OVER:
+                key = AlphaComposite.DST_OVER;
+                break;
+            case DESTINATION_ATOP:
+                key = AlphaComposite.DST_ATOP;
+                break;
+            case SOURCE:
+                key = AlphaComposite.SRC;
+                break;
+            case SOURCE_ATOP:
+                key = AlphaComposite.SRC_ATOP;
+                break;
+            case SOURCE_IN:
+                key = AlphaComposite.SRC_IN;
+                break;
+            case SOURCE_OUT:
+                key = AlphaComposite.SRC_OUT;
+                break;
+            case SOURCE_OVER:
+                key = AlphaComposite.SRC_OVER;
+                break;
+            case XOR:
+                key = AlphaComposite.XOR;
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown porter duff mode:" + mode);
+        }
+        return AlphaComposite.getInstance(key);
+    }
+
     @Override
     public void drawMultiplicativly(AbstractBitmap bitmap) {
         ensureGraphics();
         Graphics2D graphics2D = (Graphics2D) graphics;
         BufferedImage image = obtainImage(bitmap);
-        // reference (android): https://developer.android.com/reference/android/graphics/PorterDuff.Mode.html
         Composite prevComp = graphics2D.getComposite();
         Composite comp = BlendComposite.Multiply;
         graphics2D.setComposite(comp);
