@@ -15,20 +15,17 @@
 
 package data;
 
+import reconstruction.*;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.ColorMetric;
 import matching.TileMatcher;
-import reconstruction.AutoLayerReconstructor;
-import reconstruction.FixedLayerReconstructor;
-import reconstruction.MosaicFragment;
-import reconstruction.MultiRectReconstructor;
-import reconstruction.Reconstructor;
-import reconstruction.RectReconstructor;
 import reconstruction.pattern.CirclePatternReconstructor;
 import reconstruction.pattern.LegoPatternReconstructor;
 import reconstruction.pattern.PatternReconstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -104,8 +101,12 @@ public class MosaicMaker<S> {
     }
 
     public AbstractBitmap makeMultiRect(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
-        Reconstructor reconstructor = new MultiRectReconstructor(source,
-                wantedRows, wantedColumns, mergeFactor, mUseAlpha, mColorMetric);
+        List<ImageResolution> allowedResolutions = new ArrayList<>();
+        allowedResolutions.add(source.getResolution());
+        allowedResolutions.add(ImageResolution.SQUARE);
+        allowedResolutions.add(new ImageResolution(2, 3));
+        Reconstructor reconstructor = new NewMultiRectReconstructor(source,
+                wantedRows, wantedColumns, allowedResolutions, mColorMetric, mUseAlpha, mergeFactor);
         AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
         return finishMosaic(source, result);
     }
@@ -168,7 +169,7 @@ public class MosaicMaker<S> {
 			MosaicFragment nextFrag = reconstructor.nextFragment();
 			AbstractBitmap nextImage;
 			do {
-				Optional<? extends MosaicTile<S>> tileCandidate = matcher.getBestMatch(nextFrag.getAverageRGB());
+				Optional<? extends MosaicTile<S>> tileCandidate = matcher.getBestMatch(nextFrag);
 				if (!tileCandidate.isPresent()) {
                     // matcher has no more tiles!
                     System.err.println("Matcher out of tiles!");

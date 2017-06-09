@@ -19,4 +19,7 @@ public interface AbstractBitmap {
 
     AbstractBitmap obtainResized(int width, int height);
 
+    default ImageResolution getResolution() {
+        return new ImageResolution(getWidth(), getHeight());
+    }
 }

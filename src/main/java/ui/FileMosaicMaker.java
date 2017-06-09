@@ -37,10 +37,10 @@ public class FileMosaicMaker {
         matcher.setTileReuseLimit(3);
 
         RandomMatcher<String> matcherRandom = new RandomMatcher<>(tiles);
-        matcherRandom.setTileReuseLimit(TileMatcher.REUSE_NONE);
-        matcherRandom.setRandom(new Random(45)); // 45 ist gut (großes Brot)
+        matcherRandom.setTileReuseLimit(5);
+        matcherRandom.setRandom(new Random(45));
 
-        mMosaicMaker = new MosaicMaker<>(matcherRandom, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
         mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 

@@ -40,4 +40,20 @@ public interface MosaicTile<S> {
 	 */
 	int getAverageARGB();
 
+    /**
+     * Returns the width of the image referenced. Can be zero if unknown.
+     * @return The width.
+     */
+	int getWidth();
+
+    /**
+     * Returns the height of the image referenced. Can be zero if unknown.
+     * @return The height.
+     */
+	int getHeight();
+
+	default ImageResolution getResolution() {
+	    return new ImageResolution(getWidth(), getHeight());
+    }
+
 }

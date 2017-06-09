@@ -15,8 +15,8 @@ public class FileMosaicJSONBuilder extends TileBuilder<String> {
     private static final FileMosaicJSONBuilder INSTANCE = new FileMosaicJSONBuilder();
 
     @Override
-    public MosaicTile<String> makeTile(String source, int averageARGB) {
-        return new FileMosaicTile(source, averageARGB);
+    public MosaicTile<String> makeTile(String source, int averageARGB, int width, int height) {
+        return new FileMosaicTile(source, averageARGB, width, height);
     }
 
     public static Set<MosaicTile<String>> loadExistingTiles(File saveFile) {

@@ -33,7 +33,7 @@ import util.image.ColorAnalysisUtil;
 public class RectReconstructor extends Reconstructor {
 	protected final int mRectHeight;
 	protected final int mRectWidth;
-	private int[][] resultingRGBA;
+	protected int[][] resultingRGBA;
 	private AbstractBitmap result;
     protected AbstractCanvas mResultCanvas;
 	private int nextImageIndex;
@@ -88,7 +88,7 @@ public class RectReconstructor extends Reconstructor {
 	 * The amount of rows of the fragmenation.
 	 * @return The amount of rows of the fragmentation. Greater than or equal 1.
 	 */
-	private int getRows() {
+	protected int getRows() {
 		return this.resultingRGBA.length;
 	}
 	
@@ -96,7 +96,7 @@ public class RectReconstructor extends Reconstructor {
 	 * Returns the amount of columns of the fragmentation.
 	 * @return The amount of columns of the fragmentation. Greater than or equal 1.
 	 */
-	private int getColumns() {
+	protected int getColumns() {
 		return this.resultingRGBA[0].length;
 	}
 	

@@ -116,6 +116,16 @@ public class LegoPatternReconstructor extends PatternReconstructor {
         public int getAverageARGB() {
             return mLegoColor;
         }
+
+        @Override
+        public int getWidth() {
+            return 0;
+        }
+
+        @Override
+        public int getHeight() {
+            return 0;
+        }
     }
 
 }

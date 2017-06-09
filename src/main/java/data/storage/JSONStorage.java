@@ -63,13 +63,16 @@ public class JSONStorage<S> {
     }
 
     private MosaicTile<S> readFromJson(JSONObject object, TileBuilder<S> builder) {
-        return builder.makeTile((String) object.get("source"), ((Long) object.get("averageARGB")).intValue());
+        return builder.makeTile((String) object.get("source"), ((Long) object.get("averageARGB")).intValue(),
+                ((Long) object.get("width")).intValue(),  ((Long) object.get("height")).intValue());
     }
 
     private JSONObject convertToJSON(MosaicTile<S> tile) {
         JSONObject obj = new JSONObject();
         obj.put("source", tile.getSource());
         obj.put("averageARGB", tile.getAverageARGB());
+        obj.put("width", tile.getWidth());
+        obj.put("height", tile.getHeight());
         return obj;
     }
 }

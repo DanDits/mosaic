@@ -1,6 +1,7 @@
 package matching;
 
 import data.MosaicTile;
+import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
 
 import java.util.*;
@@ -27,7 +28,7 @@ public class RandomMatcher<S> extends TileMatcher<S> {
     }
 
     @Override
-    protected Optional<? extends MosaicTile<S>> calculateBestMatch(int withRGB) {
+    protected Optional<? extends MosaicTile<S>> calculateBestMatch(MosaicFragment wantedFragment) {
         if (tiles.isEmpty()) {
             return Optional.empty();
         }

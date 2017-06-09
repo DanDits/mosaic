@@ -18,6 +18,7 @@ package matching;
 
 import java.util.*;
 
+import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
 import data.MosaicTile;
 
@@ -45,9 +46,9 @@ public class SimpleLinearTileMatcher<S> extends TileMatcher<S> {
 	}
 
 	@Override
-	public Optional<MosaicTile<S>> calculateBestMatch(int withRGB) {
+	public Optional<MosaicTile<S>> calculateBestMatch(MosaicFragment fragment) {
 		return this.tiles.stream().min(Comparator.comparingDouble(
-											tile -> mColorMetric.getDistance(tile.getAverageARGB(), withRGB, useAlpha)));
+											tile -> mColorMetric.getDistance(tile.getAverageARGB(), fragment.getAverageRGB(), useAlpha)));
 	}
 
 	@Override

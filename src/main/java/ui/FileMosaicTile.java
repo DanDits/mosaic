@@ -11,14 +11,15 @@ public class FileMosaicTile implements MosaicTile<String> {
 
     private int averageARGB;
     private String path;
+    private int width;
+    private int height;
 
-    public FileMosaicTile(String path) {
-        this.path = path;
-    }
 
-    FileMosaicTile(String path, int averageARGB) {
+    FileMosaicTile(String path, int averageARGB, int width, int height) {
         this.path = path;
         this.averageARGB = averageARGB;
+        this.width = width;
+        this.height = height;
     }
 
     @Override
@@ -44,5 +45,15 @@ public class FileMosaicTile implements MosaicTile<String> {
     @Override
     public int getAverageARGB() {
         return averageARGB;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
     }
 }

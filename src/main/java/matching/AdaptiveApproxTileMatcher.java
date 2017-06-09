@@ -18,6 +18,7 @@ package matching;
 
 import java.util.*;
 
+import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
 import data.MosaicTile;
 
@@ -83,10 +84,11 @@ public class AdaptiveApproxTileMatcher<S> extends TileMatcher<S> {
     }
 
     @Override
-    protected Optional<MosaicTile<S>> calculateBestMatch(int targetColor) {
+    protected Optional<MosaicTile<S>> calculateBestMatch(MosaicFragment fragment) {
         int currentColorApprox = mCurrentColorApprox;
         double tolerance = mColorMetric.maxValue(useAlpha) * mAccuracy;
         boolean repeat;
+        int targetColor = fragment.getAverageRGB();
         do {
             repeat = false;
             double distanceToTarget = mColorMetric.getDistance(currentColorApprox, targetColor, useAlpha);

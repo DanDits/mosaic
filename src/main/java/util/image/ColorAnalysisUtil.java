@@ -172,26 +172,32 @@ public final class ColorAnalysisUtil {
 		return AbstractColor.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
 	}
 
-	public static int getAverageColor(AbstractBitmap image, int fromX, int toX, int fromY, int toY) {
-		long averageRed = 0, averageGreen = 0, averageBlue = 0, averageAlpha = 0;
-        fromX = Math.max(0, fromX);
-        fromY = Math.max(0, fromY);
-        toX = Math.min(image.getWidth() - 1, toX);
-        toY = Math.min(image.getHeight() - 1, toY);
-		for (int x = fromX; x < toX; x++) {
-			for (int y = fromY; y < toY; y++) {
-				int rgba = image.getPixel(x, y);
-				averageRed += AbstractColor.red(rgba);
-				averageGreen += AbstractColor.green(rgba);
-				averageBlue += AbstractColor.blue(rgba);
-				averageAlpha += AbstractColor.alpha(rgba);
-			}
-		}
-		long pixels = (toX - fromX) * (toY - fromY);
-		if (pixels <= 0L) {
-			pixels = 1L;
-		}
+	@FunctionalInterface
+	public interface ColoredCoordinates {
+		int getColorOfCoordinates(int x, int y);
+	}
+
+	public static int getAverageColor(ColoredCoordinates colorCoords, int fromX, int toX, int fromY, int toY) {
+        long averageRed = 0, averageGreen = 0, averageBlue = 0, averageAlpha = 0;
+        for (int x = fromX; x < toX; x++) {
+            for (int y = fromY; y < toY; y++) {
+                int rgba = colorCoords.getColorOfCoordinates(x, y);
+                averageRed += AbstractColor.red(rgba);
+                averageGreen += AbstractColor.green(rgba);
+                averageBlue += AbstractColor.blue(rgba);
+                averageAlpha += AbstractColor.alpha(rgba);
+            }
+        }
+        long pixels = (toX - fromX) * (toY - fromY);
+        if (pixels <= 0L) {
+            pixels = 1L;
+        }
         return AbstractColor.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
+
+    }
+
+	public static int getAverageColor(AbstractBitmap image, int fromX, int toX, int fromY, int toY) {
+		return getAverageColor(image::getPixel, fromX, toX, fromY, toY);
 	}
 
 	/**

@@ -17,6 +17,7 @@ package matching;
 
 
 
+import reconstruction.MosaicFragment;
 import util.caching.Cachable;
 import util.caching.LruCache;
 import util.image.ColorMetric;
@@ -33,14 +34,13 @@ import java.util.Optional;
  *
  */
 public abstract class TileMatcher<S> {
-	//TODO add way to filter tiles before calculating best match (or using the hashed) to filter for example to (almost) fitting aspect ratio
 	private static final int CACHE_SIZE = 64;
     private static final ColorMetric DEFAULT_COLOR_METRIC = ColorMetric.Euclid2.INSTANCE;
 	public static final int REUSE_UNLIMITED = -1;
 	public static final int REUSE_NONE = 0;
 
 	ColorMetric mColorMetric;
-    private Cachable<Integer, MosaicTile<S>> mMatchesCache = new LruCache<>(CACHE_SIZE);
+    private Cachable<MosaicFragment, MosaicTile<S>> mMatchesCache = new LruCache<>(CACHE_SIZE);
     private Map<S, Integer> reuseCount = new HashMap<>();
 
     /**
@@ -57,8 +57,8 @@ public abstract class TileMatcher<S> {
         mMatchesCache.clearCache(Cachable.CLEAR_EMPTY);
     }
 
-    private Optional<? extends MosaicTile<S>> getBestMatchHashed(int color) {
-        return mMatchesCache.getFromCache(color, this::calculateBestMatch);
+    private Optional<? extends MosaicTile<S>> getBestMatchHashed(MosaicFragment wantedFragment) {
+        return mMatchesCache.getFromCache(wantedFragment, this::calculateBestMatch);
     }
 
     public void setTileReuseLimit(int limit) {
@@ -84,30 +84,21 @@ public abstract class TileMatcher<S> {
 		setColorMetric(metric);
 	}
 
-	/**
-	 * Returns the best matching MosaicTile for the given rgb color.
-	 * The result and speed of this calculation highly depends on the tile matcher.
-	 * Higher accuracy usually returns better results at a cost of speed.
-	 * @param withRGB The rgb to match. If the alpha value is used can be requested by
-	 * usesAlpha().
-	 * @return The best matching mosaic tile. If the tile matcher has tile data
-	 * this will never be <code>null</code>.
-	 */
-	protected abstract Optional<? extends MosaicTile<S>> calculateBestMatch(int withRGB);
+	protected abstract Optional<? extends MosaicTile<S>> calculateBestMatch(MosaicFragment wantedTile);
 
-    public Optional<? extends MosaicTile<S>> getBestMatch(int color) {
+    public Optional<? extends MosaicTile<S>> getBestMatch(MosaicFragment wantedFragment) {
 		Optional<? extends MosaicTile<S>> result;
 		boolean canUseResult;
 		do {
 			canUseResult = true;
-			result = getBestMatchHashed(color);
+			result = getBestMatchHashed(wantedFragment);
 			if (result.isPresent() && reuseLimit >= 0) {
 				int currentReuseCount = reuseCount.getOrDefault(result.get().getSource(), -1);
 				reuseCount.put(result.get().getSource(), currentReuseCount + 1);
 				if (currentReuseCount >= reuseLimit) {
 					canUseResult = false;
 					removeTile(result.get());
-					mMatchesCache.removeFromCache(color);
+					mMatchesCache.removeFromCache(wantedFragment);
 				}
 			}
 		} while (!canUseResult);

@@ -80,4 +80,24 @@ public class MosaicFragment {
 		return "Fragment (hxw=" + this.height + "x" + this.width 
 				+ " rgb=" + ColorAnalysisUtil.visualizeRGB(this.averageRGB, false) + ")";
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		MosaicFragment that = (MosaicFragment) o;
+
+		if (width != that.width) return false;
+		if (height != that.height) return false;
+		return averageRGB == that.averageRGB;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = width;
+		result = 31 * result + height;
+		result = 31 * result + averageRGB;
+		return result;
+	}
 }
