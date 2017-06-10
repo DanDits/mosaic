@@ -13,7 +13,7 @@
  *
  */
 
-package reconstruction;
+package reconstruction.workers;
 
 
 import java.util.ArrayList;
@@ -21,7 +21,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import data.AbstractBitmap;
+import data.image.AbstractBitmap;
+import reconstruction.MosaicFragment;
+import reconstruction.Reconstructor;
 import util.PercentProgressListener;
 import util.image.ColorAnalysisUtil;
 import util.image.ColorMetric;

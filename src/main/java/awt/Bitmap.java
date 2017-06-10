@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import data.AbstractBitmap;
+import data.image.AbstractBitmap;
 
 import javax.imageio.ImageIO;
 

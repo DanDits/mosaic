@@ -1,8 +1,8 @@
 package awt;
 
-import data.AbstractBitmap;
-import data.AbstractCanvas;
-import data.AbstractCanvasFactory;
+import data.image.AbstractBitmap;
+import data.image.AbstractCanvas;
+import data.image.AbstractCanvasFactory;
 
 /**
  * Created by dd on 03.06.17.

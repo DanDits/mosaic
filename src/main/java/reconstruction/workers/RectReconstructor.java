@@ -13,12 +13,14 @@
  *
  */
 
-package reconstruction;
+package reconstruction.workers;
 
 
-import data.AbstractBitmap;
-import data.AbstractCanvas;
-import data.AbstractCanvasFactory;
+import data.image.AbstractBitmap;
+import data.image.AbstractCanvas;
+import data.image.AbstractCanvasFactory;
+import reconstruction.MosaicFragment;
+import reconstruction.Reconstructor;
 import util.image.ColorAnalysisUtil;
 
 /**

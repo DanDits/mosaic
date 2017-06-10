@@ -15,8 +15,8 @@
 
 package util.image;
 
-import data.AbstractBitmap;
-import data.AbstractColor;
+import data.image.AbstractBitmap;
+import data.image.AbstractColor;
 
 /**
  * This class is an utility class. It offers RGB convertion

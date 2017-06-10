@@ -13,8 +13,10 @@
  *
  */
 
-package data;
+package data.image;
 
+
+import data.mosaic.MosaicTile;
 
 /**
  * An interface for a MosaicMaker to provide the actual bitmap in a certain size

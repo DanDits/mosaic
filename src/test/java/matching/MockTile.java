@@ -1,6 +1,6 @@
 package matching;
 
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
 
 /**
  * Created by dd on 07.06.17.

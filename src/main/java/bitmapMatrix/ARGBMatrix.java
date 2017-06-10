@@ -1,9 +1,9 @@
 package bitmapMatrix;
 
-import data.AbstractBitmap;
+import data.image.AbstractBitmap;
 
-import data.AbstractBitmapFactory;
-import data.AbstractColor;
+import data.image.AbstractBitmapFactory;
+import data.image.AbstractColor;
 import util.jama.Matrix;
 
 /**

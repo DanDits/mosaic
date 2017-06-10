@@ -1,10 +1,10 @@
 package reconstruction.pattern;
 
 
-import data.AbstractBitmap;
+import data.image.AbstractBitmap;
 import util.image.ColorMetric;
 import matching.TileMatcher;
-import reconstruction.RectReconstructor;
+import reconstruction.workers.RectReconstructor;
 
 /**
  * Created by daniel on 05.12.15.

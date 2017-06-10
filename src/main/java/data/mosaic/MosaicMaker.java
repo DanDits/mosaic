@@ -13,15 +13,20 @@
  *
  */
 
-package data;
+package data.mosaic;
 
+import data.image.*;
 import reconstruction.*;
+import reconstruction.workers.AutoLayerReconstructor;
+import reconstruction.workers.FixedLayerReconstructor;
+import reconstruction.workers.MultiRectReconstructor;
+import reconstruction.workers.RectReconstructor;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.ColorMetric;
 import matching.TileMatcher;
-import reconstruction.pattern.CirclePatternReconstructor;
-import reconstruction.pattern.LegoPatternReconstructor;
+import reconstruction.workers.CirclePatternReconstructor;
+import reconstruction.workers.LegoPatternReconstructor;
 import reconstruction.pattern.PatternReconstructor;
 
 import java.util.ArrayList;
@@ -106,7 +111,7 @@ public class MosaicMaker<S> {
         allowedResolutions.add(new ImageResolution(2, 3));
         allowedResolutions.add(new ImageResolution(3, 2));
         allowedResolutions.add(ImageResolution.SQUARE);
-        Reconstructor reconstructor = new NewMultiRectReconstructor(source,
+        Reconstructor reconstructor = new MultiRectReconstructor(source,
                 wantedRows, wantedColumns, allowedResolutions, mColorMetric, mUseAlpha, mergeFactor);
         AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
         return finishMosaic(source, result);

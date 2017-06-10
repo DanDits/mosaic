@@ -1,8 +1,9 @@
-package matching;
+package matching.workers;
 
+import matching.TileMatcher;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
 
 import java.util.Optional;
 

@@ -1,11 +1,9 @@
 package awt;
 
-import data.AbstractBitmap;
-import data.AbstractBitmapFactory;
-import net.coobird.thumbnailator.Thumbnailator;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
 import net.coobird.thumbnailator.Thumbnails;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;

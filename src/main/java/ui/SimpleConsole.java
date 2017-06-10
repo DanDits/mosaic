@@ -1,9 +1,8 @@
 package ui;
 
-import data.AbstractBitmap;
-import data.MosaicMaker;
-import data.MosaicTile;
-import data.storage.JSONStorage;
+import data.image.AbstractBitmap;
+import data.mosaic.MosaicMaker;
+import data.mosaic.MosaicTile;
 
 import java.io.File;
 import java.io.IOException;

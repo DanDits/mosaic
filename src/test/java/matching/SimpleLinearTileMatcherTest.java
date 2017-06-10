@@ -1,9 +1,8 @@
 package matching;
 
-import data.AbstractColor;
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
+import matching.workers.SimpleLinearTileMatcher;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;

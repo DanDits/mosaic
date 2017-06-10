@@ -1,4 +1,4 @@
-package data;
+package data.image;
 
 /**
  * Created by dd on 03.06.17.

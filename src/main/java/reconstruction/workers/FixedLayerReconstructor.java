@@ -13,14 +13,16 @@
  *
  */
 
-package reconstruction;
+package reconstruction.workers;
 
 
 import java.util.Arrays;
 import java.util.Random;
 
-import data.AbstractBitmap;
-import data.AbstractColor;
+import data.image.AbstractBitmap;
+import data.image.AbstractColor;
+import reconstruction.MosaicFragment;
+import reconstruction.Reconstructor;
 import util.PercentProgressListener;
 import util.image.ColorMetric;
 

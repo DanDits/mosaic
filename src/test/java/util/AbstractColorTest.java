@@ -1,6 +1,6 @@
 package util;
 
-import data.AbstractColor;
+import data.image.AbstractColor;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 

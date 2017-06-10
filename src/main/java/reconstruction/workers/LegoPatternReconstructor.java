@@ -1,13 +1,19 @@
-package reconstruction.pattern;
+package reconstruction.workers;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import data.*;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import data.image.AbstractCanvas;
+import data.image.AbstractCanvasFactory;
+import data.mosaic.MosaicTile;
+import reconstruction.pattern.PatternReconstructor;
+import reconstruction.pattern.PatternSource;
 import util.image.ColorAnalysisUtil;
 import util.image.ColorMetric;
-import matching.SimpleLinearTileMatcher;
+import matching.workers.SimpleLinearTileMatcher;
 import matching.TileMatcher;
 
 /**

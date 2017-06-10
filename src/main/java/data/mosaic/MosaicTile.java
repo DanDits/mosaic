@@ -13,8 +13,10 @@
  *
  */
 
-package data;
+package data.mosaic;
 
+
+import data.image.ImageResolution;
 
 /**
  * This interface is a reference of anything than can be used to reconstruct a mosaic and serve as a MosaicFragment.

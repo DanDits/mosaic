@@ -21,7 +21,7 @@ import reconstruction.MosaicFragment;
 import util.caching.Cachable;
 import util.caching.LruCache;
 import util.image.ColorMetric;
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,21 +39,21 @@ public abstract class TileMatcher<S> {
 	public static final int REUSE_UNLIMITED = -1;
 	public static final int REUSE_NONE = 0;
 
-	ColorMetric mColorMetric;
+	protected ColorMetric mColorMetric;
     private Cachable<MosaicFragment, MosaicTile<S>> mMatchesCache = new LruCache<>(CACHE_SIZE);
     private Map<S, Integer> reuseCount = new HashMap<>();
 
     /**
      * If the TileMatcher uses the alpha value of the rgb values for matching.
      */
-    boolean useAlpha;
+    protected boolean useAlpha;
 	private int reuseLimit = REUSE_UNLIMITED;
 
 	protected void setCacheSize(int size) {
     	mMatchesCache.setCacheSize(size);
 	}
 
-    void resetHashMatches() {
+    protected void resetHashMatches() {
         mMatchesCache.clearCache(Cachable.CLEAR_EMPTY);
     }
 
@@ -79,7 +79,7 @@ public abstract class TileMatcher<S> {
      * @param useAlpha If the matcher uses the alpha value for matching.
      * @param metric The color metric to use, if null defaults to Euclid2.
      */
-    TileMatcher(boolean useAlpha, ColorMetric metric) {
+    protected TileMatcher(boolean useAlpha, ColorMetric metric) {
 		setUseAlpha(useAlpha);
 		setColorMetric(metric);
 	}

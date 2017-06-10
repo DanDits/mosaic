@@ -1,15 +1,14 @@
-package data;
+package data.mosaic;
 
 import bitmapMatrix.ARGBMatrix;
 import bitmapMatrix.BitmapMatrix;
 import bitmapMatrix.IndexedBitmap;
 import bitmapMatrix.SplitArgbBitmap;
-import data.AbstractBitmap;
+import data.image.AbstractBitmap;
 import util.PercentProgressListener;
 import util.jama.Matrix;
 import util.jama.SingularValueDecomposition;
 import bitmapMatrix.SplitRgbBitmap;
-import data.MosaicMaker;
 
 /**
  * Created by daniel on 17.10.15.

@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import data.AbstractBitmap;
-import data.AbstractBitmapFactory;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
 import util.jama.Matrix;
 
 /**

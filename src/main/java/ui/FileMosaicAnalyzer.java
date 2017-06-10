@@ -1,13 +1,11 @@
 package ui;
 
-import data.AbstractBitmap;
-import data.AbstractBitmapFactory;
-import data.MosaicTile;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import data.mosaic.MosaicTile;
 import data.storage.JSONStorage;
 import util.image.ColorAnalysisUtil;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;

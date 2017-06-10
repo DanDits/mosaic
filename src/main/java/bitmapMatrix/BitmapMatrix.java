@@ -1,6 +1,6 @@
 package bitmapMatrix;
 
-import data.AbstractBitmap;
+import data.image.AbstractBitmap;
 import util.jama.Matrix;
 
 /**

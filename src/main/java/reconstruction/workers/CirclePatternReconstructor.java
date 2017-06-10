@@ -1,12 +1,14 @@
-package reconstruction.pattern;
+package reconstruction.workers;
 
-import data.AbstractBitmap;
-import data.AbstractCanvas;
-import data.AbstractCanvasFactory;
+import data.image.AbstractBitmap;
+import data.image.AbstractCanvas;
+import data.image.AbstractCanvasFactory;
+import reconstruction.pattern.PatternReconstructor;
+import reconstruction.pattern.PatternSource;
 import util.image.ColorAnalysisUtil;
 import util.image.ColorMetric;
 import matching.TileMatcher;
-import matching.TrivialMatcher;
+import matching.workers.TrivialMatcher;
 
 /**
  * Created by daniel on 05.12.15.

@@ -1,8 +1,6 @@
 package ui;
 
-import data.MosaicTile;
-
-import java.io.File;
+import data.mosaic.MosaicTile;
 
 /**
  * Created by dd on 03.06.17.

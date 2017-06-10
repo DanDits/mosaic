@@ -41,7 +41,7 @@ public class MosaicFragment {
 		reset(width, height, averageRGB);
 	}
 
-	void reset(int width, int height, int averageRGB) {
+	public void reset(int width, int height, int averageRGB) {
 		this.width = width;
 		this.height = height;
         this.averageRGB = averageRGB;

@@ -17,8 +17,9 @@ package reconstruction;
 
 
 
-import data.AbstractBitmap;
-import data.AbstractBitmapFactory;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import reconstruction.workers.RectReconstructor;
 
 /**
  * This class models an abstract Reconstructor which is used to reconstruct
@@ -86,7 +87,7 @@ public abstract class Reconstructor {
 	 * to wantedCount.
 	 * @throws IllegalArgumentException If a parameter is negative or zero.
 	 */
-	static int getClosestCount(int imageDimension, int wantedCount) {
+	protected static int getClosestCount(int imageDimension, int wantedCount) {
 		if (imageDimension <= 0 || wantedCount <= 0) {
 			throw new IllegalArgumentException("Image and wanted rect dimension must be greater than zero");
 		} else {

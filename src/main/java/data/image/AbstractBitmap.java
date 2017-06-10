@@ -1,4 +1,4 @@
-package data;
+package data.image;
 
 import java.io.File;
 import java.io.IOException;

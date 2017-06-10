@@ -1,6 +1,7 @@
-package matching;
+package matching.workers;
 
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
+import matching.TileMatcher;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
 

@@ -1,6 +1,6 @@
 package ui;
 
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
 import data.storage.JSONStorage;
 import data.storage.TileBuilder;
 

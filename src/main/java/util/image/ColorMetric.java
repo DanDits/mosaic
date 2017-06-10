@@ -16,7 +16,7 @@
 package util.image;
 
 
-import data.AbstractColor;
+import data.image.AbstractColor;
 
 import java.util.ArrayList;
 import java.util.List;

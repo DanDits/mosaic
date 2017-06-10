@@ -1,9 +1,9 @@
 package awt;
 
-import data.AbstractBitmap;
-import data.AbstractCanvas;
-import data.AbstractColor;
-import data.PorterDuffMode;
+import data.image.AbstractBitmap;
+import data.image.AbstractCanvas;
+import data.image.AbstractColor;
+import data.image.PorterDuffMode;
 import util.image.BlendComposite;
 
 import java.awt.*;

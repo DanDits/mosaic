@@ -1,7 +1,8 @@
-package reconstruction;
+package reconstruction.workers;
 
-import data.AbstractBitmap;
-import data.ImageResolution;
+import data.image.AbstractBitmap;
+import data.image.ImageResolution;
+import reconstruction.MosaicFragment;
 import util.image.ColorAnalysisUtil;
 import util.image.ColorMetric;
 
@@ -15,7 +16,7 @@ import java.util.stream.IntStream;
 /**
  * Created by daniel on 08.06.17.
  */
-public class NewMultiRectReconstructor extends RectReconstructor {
+public class MultiRectReconstructor extends RectReconstructor {
 
     private final List<ImageResolution> allowedResolutions;
     private final double similarityFactor;
@@ -27,9 +28,9 @@ public class NewMultiRectReconstructor extends RectReconstructor {
     private MosaicFragment wantedFragment;
     private int rectUsedCount;
 
-    public NewMultiRectReconstructor(AbstractBitmap source, int wantedRows, int wantedColumns,
-                                     List<ImageResolution> allowedResolutions, ColorMetric metric,
-                                     boolean useAlpha, double similarityFactor) {
+    public MultiRectReconstructor(AbstractBitmap source, int wantedRows, int wantedColumns,
+                                  List<ImageResolution> allowedResolutions, ColorMetric metric,
+                                  boolean useAlpha, double similarityFactor) {
         super(source, wantedRows, wantedColumns);
         this.colorMetric = metric;
         this.useAlpha = useAlpha;

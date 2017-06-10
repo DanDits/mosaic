@@ -13,14 +13,15 @@
  *
  */
 
-package matching;
+package matching.workers;
 
 
 import java.util.*;
 
+import matching.TileMatcher;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
-import data.MosaicTile;
+import data.mosaic.MosaicTile;
 
 /**
  * This class implements a {@link TileMatcher}. This is a very basic

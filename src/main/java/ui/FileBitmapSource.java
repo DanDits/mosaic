@@ -1,9 +1,9 @@
 package ui;
 
-import data.AbstractBitmap;
-import data.AbstractBitmapFactory;
-import data.BitmapSource;
-import data.MosaicTile;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import data.image.BitmapSource;
+import data.mosaic.MosaicTile;
 import util.caching.LruCache;
 
 import java.io.File;

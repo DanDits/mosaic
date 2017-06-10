@@ -1,12 +1,17 @@
 package ui;
 
-import data.*;
-import matching.RandomMatcher;
-import matching.ResolutionMatcher;
-import matching.SimpleLinearTileMatcher;
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import data.image.BitmapSource;
+import data.mosaic.MosaicMaker;
+import data.mosaic.MosaicTile;
+import data.mosaic.SVDMaker;
+import matching.workers.RandomMatcher;
+import matching.workers.ResolutionMatcher;
+import matching.workers.SimpleLinearTileMatcher;
 import matching.TileMatcher;
-import reconstruction.pattern.CirclePatternReconstructor;
-import reconstruction.pattern.LegoPatternReconstructor;
+import reconstruction.workers.CirclePatternReconstructor;
+import reconstruction.workers.LegoPatternReconstructor;
 import util.image.ColorMetric;
 
 import java.io.File;
