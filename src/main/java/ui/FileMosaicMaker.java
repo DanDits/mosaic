@@ -2,6 +2,7 @@ package ui;
 
 import data.*;
 import matching.RandomMatcher;
+import matching.ResolutionMatcher;
 import matching.SimpleLinearTileMatcher;
 import matching.TileMatcher;
 import reconstruction.pattern.CirclePatternReconstructor;
@@ -40,7 +41,9 @@ public class FileMosaicMaker {
         matcherRandom.setTileReuseLimit(5);
         matcherRandom.setRandom(new Random(45));
 
-        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+        ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+
+        mMosaicMaker = new MosaicMaker<>(resolutionMatcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
         mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 

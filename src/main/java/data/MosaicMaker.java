@@ -103,8 +103,9 @@ public class MosaicMaker<S> {
     public AbstractBitmap makeMultiRect(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
         List<ImageResolution> allowedResolutions = new ArrayList<>();
         allowedResolutions.add(source.getResolution());
-        allowedResolutions.add(ImageResolution.SQUARE);
         allowedResolutions.add(new ImageResolution(2, 3));
+        allowedResolutions.add(new ImageResolution(3, 2));
+        allowedResolutions.add(ImageResolution.SQUARE);
         Reconstructor reconstructor = new NewMultiRectReconstructor(source,
                 wantedRows, wantedColumns, allowedResolutions, mColorMetric, mUseAlpha, mergeFactor);
         AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
@@ -189,10 +190,7 @@ public class MosaicMaker<S> {
 			} while (nextImage == null);
 
 			if (!reconstructor.giveNext(nextImage)) {
-				// reconstructor did not accept the give image, but it was valid and of correct dimension, 
-				// does not occur
-				// with RectReconstructor / MultiRectReconstructor, but who knows, if I ever forget 
-				// this I would be stuck here
+				// reconstructor did not accept the give image, but it was valid and of correct dimension,
                 System.err.println("Reconstructor did not accept given image.");
                 return null;
 			}
