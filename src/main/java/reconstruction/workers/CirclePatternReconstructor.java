@@ -3,6 +3,8 @@ package reconstruction.workers;
 import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
+import reconstruction.ReconstructionParameters;
+import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
 import util.image.ColorAnalysisUtil;
@@ -17,6 +19,18 @@ public class CirclePatternReconstructor extends PatternReconstructor {
     public static final String NAME = "Circles";
     private double[] mRaster;
     private double mAverageBrightness;
+
+    public static class CircleParameters extends PatternParameters {
+
+        public CircleParameters(AbstractBitmap source) {
+            super(source);
+        }
+
+        @Override
+        public Reconstructor makeReconstructor() throws IllegalParameterException {
+            return new CirclePatternReconstructor(this);
+        }
+    }
 
     public static class Source<S> extends PatternSource<S> {
         private AbstractBitmap mPatternBitmap;
@@ -42,8 +56,8 @@ public class CirclePatternReconstructor extends PatternReconstructor {
         }
     }
 
-    public CirclePatternReconstructor(AbstractBitmap source, int wantedRows, int wantedColumns, int groundingColor) {
-        super(source, wantedRows, wantedColumns, groundingColor);
+    public CirclePatternReconstructor(CircleParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+        super(parameters);
     }
 
     public <S> PatternSource<S> makeSource() {

@@ -105,64 +105,69 @@ public class MosaicMaker<S> {
         mMatcher.setColorMetric(metric);
     }
 
-    public AbstractBitmap makeMultiRect(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
-        List<ImageResolution> allowedResolutions = new ArrayList<>();
-        allowedResolutions.add(source.getResolution());
-        allowedResolutions.add(new ImageResolution(2, 3));
-        allowedResolutions.add(new ImageResolution(3, 2));
-        allowedResolutions.add(ImageResolution.SQUARE);
-        Reconstructor reconstructor = new MultiRectReconstructor(source,
-                wantedRows, wantedColumns, allowedResolutions, mColorMetric, mUseAlpha, mergeFactor);
-        AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
-        return finishMosaic(source, result);
+    public MultiRectReconstructor.MultiRectParameters makeMultiRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
+        MultiRectReconstructor.MultiRectParameters params = new MultiRectReconstructor.MultiRectParameters(source);
+        params.wantedColumns = wantedColumns;
+        params.wantedRows = wantedRows;
+        params.similarityFactor = mergeFactor;
+        params.useAlpha = mUseAlpha;
+        params.metric = mColorMetric;
+        return params;
     }
 
-    public AbstractBitmap makeRect(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
-        Reconstructor reconstructor = new RectReconstructor(source,
-                wantedRows, wantedColumns);
-        AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, progress);
-        return finishMosaic(source, result);
+    public RectReconstructor.RectParameters makeRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
+        RectReconstructor.RectParameters params = new RectReconstructor.RectParameters(source);
+        params.wantedColumns = wantedColumns;
+        params.wantedRows = wantedRows;
+        return params;
     }
 
-    public AbstractBitmap makeAutoLayer(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
+    public AutoLayerReconstructor.AutoLayerParameters makeAutoLayerParameters(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
         MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
-        Reconstructor reconstructor = new AutoLayerReconstructor(source, mergeFactor, mUseAlpha, mColorMetric, multiProgress);
-		multiProgress.nextStep();
-        AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, multiProgress);
-		multiProgress.nextStep();
-        return finishMosaic(source, result);
+        AutoLayerReconstructor.AutoLayerParameters params = new AutoLayerReconstructor.AutoLayerParameters(source);
+        params.useAlpha = mUseAlpha;
+        params.factor = mergeFactor;
+        params.metric = mColorMetric;
+        params.progress = multiProgress;
+        return params;
     }
 
-    public AbstractBitmap makeFixedLayer(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
+    public FixedLayerReconstructor.FixedLayerParameters makeFixedLayerParameters(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
         MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
-        Reconstructor reconstructor = new FixedLayerReconstructor(source, clusterCount, mUseAlpha, mColorMetric, multiProgress);
-        multiProgress.nextStep();
-        AbstractBitmap result = make(mMatcher, mBitmapSource, reconstructor, multiProgress);
-        multiProgress.nextStep();
-        return finishMosaic(source, result);
+        FixedLayerReconstructor.FixedLayerParameters params = new FixedLayerReconstructor.FixedLayerParameters(source);
+        params.useAlpha = mUseAlpha;
+        params.metric = mColorMetric;
+        params.layersCount = clusterCount;
+        params.progress = multiProgress;
+        return params;
     }
 
-    public AbstractBitmap makePattern(AbstractBitmap source, String patternName,
-                                     int rows, int columns, ProgressCallback progress) {
-        MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
-        PatternReconstructor reconstructor;
+    public PatternReconstructor.PatternParameters makePatternParameters(AbstractBitmap source, String patternName,
+                                                                        int rows, int columns, ProgressCallback progress) {
+        PatternReconstructor.PatternParameters params;
         switch (patternName) {
             default:
                 // fall through
             case CirclePatternReconstructor.NAME:
-                reconstructor = new CirclePatternReconstructor(source, rows, columns, AbstractColor.TRANSPARENT);
+                params = new CirclePatternReconstructor.CircleParameters(source);
                 break;
             case LegoPatternReconstructor.NAME:
-                reconstructor = new LegoPatternReconstructor(source, rows, columns, AbstractColor.TRANSPARENT);
+                params = new LegoPatternReconstructor.LegoParameters(source);
                 break;
         }
-        multiProgress.nextStep();
-        AbstractBitmap result = make(reconstructor.<Void>makeMatcher(usesAlpha(), getColorMetric()), reconstructor
-                        .<Void>makeSource(),
-                reconstructor,
-                multiProgress);
-        multiProgress.nextStep();
-        return finishMosaic(source, result);
+        params.wantedColumns = columns;
+        params.wantedRows = rows;
+        params.groundingColor = AbstractColor.TRANSPARENT;
+        return params;
+    }
+
+    public AbstractBitmap make(ReconstructionParameters parameters, ProgressCallback callback) throws ReconstructionParameters.IllegalParameterException {
+        if (parameters == null) {
+            throw new NullPointerException();
+        }
+        AbstractBitmap source = parameters.getBitmapSource();
+        Reconstructor reconstructor = parameters.makeReconstructor();
+        return finishMosaic(source, make(mMatcher, mBitmapSource, reconstructor, callback));
     }
 
 	private static <S>AbstractBitmap make(TileMatcher<S> matcher, BitmapSource<S> source, Reconstructor

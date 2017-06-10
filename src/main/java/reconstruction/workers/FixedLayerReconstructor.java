@@ -22,6 +22,7 @@ import java.util.Random;
 import data.image.AbstractBitmap;
 import data.image.AbstractColor;
 import reconstruction.MosaicFragment;
+import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.PercentProgressListener;
 import util.image.ColorMetric;
@@ -46,10 +47,46 @@ public class FixedLayerReconstructor extends Reconstructor {
     private int[] mClusterColors;
     private int mCurrCluster;
 
-    public FixedLayerReconstructor(AbstractBitmap source, int clusterCount, boolean useAlpha, ColorMetric metric, PercentProgressListener progress) {
-        mUseAlpha = useAlpha;
-        mColorMetric = metric;
-        init(source, clusterCount, progress);
+    public static class FixedLayerParameters extends ReconstructionParameters {
+        private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
+        public PercentProgressListener progress;
+        public boolean useAlpha;
+        public ColorMetric metric;
+        public int layersCount;
+
+        public FixedLayerParameters(AbstractBitmap source) {
+            super(source);
+        }
+
+        @Override
+        public Reconstructor makeReconstructor() throws IllegalParameterException {
+            return new FixedLayerReconstructor(this);
+        }
+
+        @Override
+        protected void resetToDefaults() {
+            useAlpha = true;
+            metric = DEFAULT_METRIC;
+            layersCount = 3;
+            progress = null;
+        }
+
+        @Override
+        protected void validateParameters() throws IllegalParameterException {
+            if (metric == null) {
+                metric = DEFAULT_METRIC;
+            }
+            if (layersCount < 1) {
+                throw new IllegalParameterException(layersCount, "Layers count must be positive.");
+            }
+        }
+    }
+
+    public FixedLayerReconstructor(FixedLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+        parameters.validateParameters();
+        mUseAlpha = parameters.useAlpha;
+        mColorMetric = parameters.metric;
+        init(parameters.getBitmapSource(), parameters.layersCount, parameters.progress);
     }
 
     private void init(AbstractBitmap source, final int clusterCount, PercentProgressListener progress) {

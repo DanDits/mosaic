@@ -52,38 +52,9 @@ public class FileMosaicMaker {
         mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 
-    public AbstractBitmap makeRect(File sourceFile, int wantedRows, int wantedColumns, MosaicMaker.ProgressCallback progress) {
-        AbstractBitmap bitmap = loadSourceFitByRowsColumns(sourceFile, wantedRows, wantedColumns);
-        if (bitmap == null) {
-            System.err.println("Could not load source: " + sourceFile);
-            return null;
-        }
-        this.progress = progress;
-        return mMosaicMaker.makeRect(bitmap, wantedRows, wantedColumns, progress);
+    public MosaicMaker<String> getMaker() {
+        return mMosaicMaker;
     }
-
-    public AbstractBitmap makeMultiRect(File sourceFile, int wantedRows, int wantedColumns, double mergeFactor,
-                                        MosaicMaker.ProgressCallback progress) {
-        AbstractBitmap bitmap = loadSourceFitByRowsColumns(sourceFile, wantedRows, wantedColumns);
-        if (bitmap == null) {
-            System.err.println("Could not load source: " + sourceFile);
-            return null;
-        }
-        this.progress = progress;
-        return mMosaicMaker.makeMultiRect(bitmap, wantedRows, wantedColumns, mergeFactor, progress);
-    }
-
-    public AbstractBitmap makeCircle(File sourceFile, int rows, int columns, MosaicMaker.ProgressCallback progress) {
-        AbstractBitmap bitmap = loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        if (bitmap == null) {
-            System.err.println("Could not load source: " + sourceFile);
-            return null;
-        }
-        this.progress = progress;
-        return mMosaicMaker.makePattern(bitmap, CirclePatternReconstructor.NAME,
-                rows, columns, progress);
-    }
-
 
     public AbstractBitmap makeSVD(File sourceFile, double factor, MosaicMaker.ProgressCallback callback) {
         AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
@@ -102,38 +73,7 @@ public class FileMosaicMaker {
         return svdMaker.getRankApproximation(wantedRank);
     }
 
-    public AbstractBitmap makeLego(File sourceFile, int rows, int columns, MosaicMaker.ProgressCallback progress) {
-        AbstractBitmap bitmap = loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        if (bitmap == null) {
-            System.err.println("Could not load source: " + sourceFile);
-            return null;
-        }
-        this.progress = progress;
-        return mMosaicMaker.makePattern(bitmap, LegoPatternReconstructor.NAME,
-                rows, columns, progress);
-    }
-
-    public AbstractBitmap makeFixedLayer(File sourceFile, int clusterCount, MosaicMaker.ProgressCallback progress) {
-        AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
-        if (bitmap == null) {
-            System.err.println("Could not load source: " + sourceFile);
-            return null;
-        }
-        this.progress = progress;
-        return mMosaicMaker.makeFixedLayer(bitmap, clusterCount, progress);
-    }
-
-    public AbstractBitmap makeAutoLayer(File sourceFile, double mergeFactor, MosaicMaker.ProgressCallback progress) {
-        AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
-        if (bitmap == null) {
-            System.err.println("Could not load source: " + sourceFile);
-            return null;
-        }
-        this.progress = progress;
-        return mMosaicMaker.makeAutoLayer(bitmap, mergeFactor, progress);
-    }
-
-    private AbstractBitmap loadSourceFitByRowsColumns(File sourceFile, int rows, int columns) {
+    public AbstractBitmap loadSourceFitByRowsColumns(File sourceFile, int rows, int columns) {
         //make sure that image dimensions are dividable by the given columns/rows values by resizing
         AbstractBitmap base = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
         targetWidth = base.getWidth();

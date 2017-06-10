@@ -20,6 +20,7 @@ import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
 import reconstruction.MosaicFragment;
+import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.image.ColorAnalysisUtil;
 
@@ -39,27 +40,44 @@ public class RectReconstructor extends Reconstructor {
 	private AbstractBitmap result;
     protected AbstractCanvas mResultCanvas;
 	private int nextImageIndex;
-	
-	/**
-	 * Creates a new {@link RectReconstructor} which fragments an image
-	 * into rects. The rects height and width are the same for all rects, so
-	 * if the wanted height/width (calculated by image height/width divided by rows/column)
-	 * are not divisors of the image's height/width, the
-	 * rect height/width will be adjusted to the next possible divisor.<br>
-	 * Images to provide by giveNext() will all need to have the same height and width.
-	 * @param source The image to fragment into rectangulars.
-	 * @param wantedRows The wanted amount of rows.
-	 * @param wantedColumns The wanted amount of columns.
-	 */
-	public RectReconstructor(AbstractBitmap source, int wantedRows, int wantedColumns) {
-		if (source == null) {
+
+	public static class RectParameters extends ReconstructionParameters{
+		public int wantedRows;
+		public int wantedColumns;
+
+		public RectParameters(AbstractBitmap source) {
+			super(source);
+		}
+
+		@Override
+		public Reconstructor makeReconstructor() throws IllegalParameterException {
+			return new RectReconstructor(this);
+		}
+
+		@Override
+		protected void resetToDefaults() {
+			wantedRows = wantedColumns = 20;
+		}
+
+		@Override
+		protected void validateParameters() throws IllegalParameterException {
+			if (wantedRows <= 0) {
+				throw new IllegalParameterException(wantedRows, "Rows must be positive.");
+			}
+			if (wantedColumns <= 0) {
+				throw new IllegalParameterException(wantedColumns, "Columns must be positive.");
+			}
+		}
+	}
+
+	public RectReconstructor(RectParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+		if (parameters == null) {
 			throw new NullPointerException();
 		}
-		if (wantedRows <= 0 || wantedColumns <= 0) {
-			throw new IllegalArgumentException("An image cannot be reconstructed to zero rows or columns.");
-		}
-		int actualRows = Reconstructor.getClosestCount(source.getHeight(), wantedRows);
-		int actualColumns = Reconstructor.getClosestCount(source.getWidth(), wantedColumns);
+		parameters.validateParameters();
+		AbstractBitmap source = parameters.getBitmapSource();
+		int actualRows = Reconstructor.getClosestCount(source.getHeight(), parameters.wantedRows);
+		int actualColumns = Reconstructor.getClosestCount(source.getWidth(), parameters.wantedColumns);
 		this.mRectHeight = source.getHeight() / actualRows;
 		this.mRectWidth = source.getWidth() / actualColumns;
 		this.resultingRGBA = new int[actualRows][actualColumns];
@@ -115,19 +133,6 @@ public class RectReconstructor extends Reconstructor {
 			this.nextImageIndex++;
 			return true;
 		}
-		StringBuilder reason = new StringBuilder();
-		if (this.hasAll()) {
-			reason.append("Has all tiles. ");
-		}
-		if (nextFragmentImage == null) {
-			reason.append("Next fragment image is null.");
-		}
-		if (nextFragmentImage.getWidth() != this.mRectWidth) {
-			reason.append("Widths do not match:" + nextFragmentImage.getWidth() + " and " + this.mRectWidth);
-		} else {
-			reason.append("Heights do not match:" + nextFragmentImage.getHeight() + " and " + this.mRectHeight);
-		}
-		System.err.println("Did not accept given image, reason=" + reason);
 		return false;
 	}
 
@@ -135,11 +140,10 @@ public class RectReconstructor extends Reconstructor {
 	public MosaicFragment nextFragment() {
 		if (this.hasAll()) {
 			return null;
-		} else {
-			return new MosaicFragment(this.mRectWidth, this.mRectHeight,
-					this.resultingRGBA[this.nextImageIndex / this.getColumns()]
-							[this.nextImageIndex % this.getColumns()]);
 		}
+		return new MosaicFragment(this.mRectWidth, this.mRectHeight,
+				this.resultingRGBA[this.nextImageIndex / this.getColumns()]
+						[this.nextImageIndex % this.getColumns()]);
 	}
 
 	@Override
@@ -153,9 +157,8 @@ public class RectReconstructor extends Reconstructor {
 			AbstractBitmap temp = this.result;
 			this.result = null;
 			return temp;
-		} else {
-			return null;
 		}
+		return null;
 	}
 
     @Override

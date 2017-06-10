@@ -9,6 +9,8 @@ import data.image.AbstractBitmapFactory;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
 import data.mosaic.MosaicTile;
+import reconstruction.ReconstructionParameters;
+import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
 import util.image.ColorAnalysisUtil;
@@ -39,10 +41,20 @@ public class LegoPatternReconstructor extends PatternReconstructor {
     private static final String LEGO_PATH = "res/images/lego_blueprint.png";
     private final AbstractBitmap mLegoBitmap;
 
-    public LegoPatternReconstructor(AbstractBitmap source, int wantedRows, int
-            wantedColumns, int
-            groundingColor) {
-        super(source, wantedRows, wantedColumns, groundingColor);
+    public static class LegoParameters extends PatternParameters {
+
+        public LegoParameters(AbstractBitmap source) {
+            super(source);
+        }
+
+        @Override
+        public Reconstructor makeReconstructor() throws IllegalParameterException {
+            return new LegoPatternReconstructor(this);
+        }
+    }
+
+    public LegoPatternReconstructor(LegoParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+        super(parameters);
         mLegoBitmap = AbstractBitmapFactory.makeInstance(new File(LEGO_PATH)).createBitmap();
         if (mLegoBitmap == null) {
             System.err.println("Error loading lego bitmap!");

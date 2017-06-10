@@ -2,6 +2,8 @@ package reconstruction.pattern;
 
 
 import data.image.AbstractBitmap;
+import reconstruction.ReconstructionParameters;
+import reconstruction.Reconstructor;
 import util.image.ColorMetric;
 import matching.TileMatcher;
 import reconstruction.workers.RectReconstructor;
@@ -10,11 +12,25 @@ import reconstruction.workers.RectReconstructor;
  * Created by daniel on 05.12.15.
  */
 public abstract class PatternReconstructor extends RectReconstructor {
-    public PatternReconstructor(AbstractBitmap source, int wantedRows, int
-            wantedColumns, int groundingColor) {
-        super(source, wantedRows, wantedColumns);
+
+    public static abstract class PatternParameters extends RectReconstructor.RectParameters {
+        public int groundingColor;
+        public PatternParameters(AbstractBitmap source) {
+            super(source);
+        }
+        @Override
+        protected void resetToDefaults() {
+            super.resetToDefaults();
+            groundingColor = 0xFF000000;
+        }
+
+        public abstract Reconstructor makeReconstructor() throws IllegalParameterException;
+    }
+
+    public PatternReconstructor(PatternParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+        super(parameters);
         mResultCanvas.clear();
-        mResultCanvas.drawColor(groundingColor);
+        mResultCanvas.drawColor(parameters.groundingColor);
     }
 
     // this is invoked by parent constructor, not best practice as subclass constructor not yet

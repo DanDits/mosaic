@@ -3,13 +3,12 @@ package reconstruction.workers;
 import data.image.AbstractBitmap;
 import data.image.ImageResolution;
 import reconstruction.MosaicFragment;
+import reconstruction.ReconstructionParameters;
+import reconstruction.Reconstructor;
 import util.image.ColorAnalysisUtil;
 import util.image.ColorMetric;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -28,17 +27,55 @@ public class MultiRectReconstructor extends RectReconstructor {
     private MosaicFragment wantedFragment;
     private int rectUsedCount;
 
-    public MultiRectReconstructor(AbstractBitmap source, int wantedRows, int wantedColumns,
-                                  List<ImageResolution> allowedResolutions, ColorMetric metric,
-                                  boolean useAlpha, double similarityFactor) {
-        super(source, wantedRows, wantedColumns);
-        this.colorMetric = metric;
-        this.useAlpha = useAlpha;
-        this.allowedResolutions = allowedResolutions.stream().distinct().collect(Collectors.toList());
-        if (this.allowedResolutions.size() == 0 || this.allowedResolutions.contains(null)) {
-            throw new IllegalArgumentException("Needs at least one valid resolution.");
+    public static class MultiRectParameters extends RectParameters {
+        private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
+        public boolean useAlpha;
+        public ColorMetric metric;
+        public double similarityFactor;
+        public List<ImageResolution> resolutions;
+        public MultiRectParameters(AbstractBitmap source) {
+            super(source);
         }
-        this.similarityFactor = Math.max(0., Math.min(1., similarityFactor));
+
+        @Override
+        protected void resetToDefaults() {
+            super.resetToDefaults();
+            useAlpha = true;
+            metric = DEFAULT_METRIC;
+            similarityFactor = 0.8;
+            resolutions = new ArrayList<>();
+            resolutions.add(source.getResolution());
+            resolutions.add(ImageResolution.SQUARE);
+            resolutions.add(new ImageResolution(2, 3));
+            resolutions.add(new ImageResolution(3, 2));
+        }
+
+        @Override
+        protected void validateParameters() throws IllegalParameterException {
+            super.validateParameters();
+            if (metric == null) {
+                metric = DEFAULT_METRIC;
+            }
+            similarityFactor = Math.max(0., Math.min(1., similarityFactor));
+            if (resolutions == null || resolutions.isEmpty() || resolutions.contains(null)) {
+                throw new IllegalParameterException(resolutions, "Resolutions must not be empty.");
+            }
+            resolutions = resolutions.stream().distinct().collect(Collectors.toList());
+        }
+
+        @Override
+        public Reconstructor makeReconstructor() throws IllegalParameterException {
+            return new MultiRectReconstructor(this);
+        }
+    }
+
+    public MultiRectReconstructor(MultiRectParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+        super(parameters);
+        parameters.validateParameters();
+        this.colorMetric = parameters.metric;
+        this.useAlpha = parameters.useAlpha;
+        this.allowedResolutions = new ArrayList<>(parameters.resolutions);
+        this.similarityFactor = parameters.similarityFactor;
         rectIsUsed = new boolean[getRows()][getColumns()];
         currentRowIndex = 0;
         currentColumnIndex = 0;

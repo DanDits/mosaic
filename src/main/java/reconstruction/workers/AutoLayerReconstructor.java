@@ -23,7 +23,9 @@ import java.util.List;
 
 import data.image.AbstractBitmap;
 import reconstruction.MosaicFragment;
+import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
+import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.ColorAnalysisUtil;
 import util.image.ColorMetric;
@@ -43,10 +45,48 @@ public class AutoLayerReconstructor extends Reconstructor {
     private int[] mPositionDeltas;
     private ColorMetric mColorMetric;
 
-    public AutoLayerReconstructor(AbstractBitmap source, double factor, boolean useAlpha, ColorMetric metric, PercentProgressListener progress) {
-        mUseAlpha = useAlpha;
-        mColorMetric = metric;
-        init(source, factor, progress);
+    public static class AutoLayerParameters extends ReconstructionParameters {
+        private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
+        public MultistepPercentProgressListener progress;
+        public double factor;
+        public boolean useAlpha;
+        public ColorMetric metric;
+
+        public AutoLayerParameters(AbstractBitmap source) {
+            super(source);
+        }
+
+        @Override
+        public Reconstructor makeReconstructor() throws IllegalParameterException {
+            Reconstructor reconstructor = new AutoLayerReconstructor(this);
+            if (progress != null) {
+                progress.nextStep();
+            }
+            return reconstructor;
+        }
+
+        @Override
+        protected void resetToDefaults() {
+            useAlpha = true;
+            metric = DEFAULT_METRIC;
+            factor = 0.7;
+            progress = null;
+        }
+
+        @Override
+        protected void validateParameters() throws IllegalParameterException {
+            if (metric == null) {
+                metric = DEFAULT_METRIC;
+            }
+            factor = Math.min(1., Math.max(0., factor));
+        }
+    }
+
+    public AutoLayerReconstructor(AutoLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+        parameters.validateParameters();
+        mUseAlpha = parameters.useAlpha;
+        mColorMetric = parameters.metric;
+        init(parameters.getBitmapSource(), parameters.factor, parameters.progress);
     }
 
     private void init(AbstractBitmap source, double factor, PercentProgressListener progress) {
