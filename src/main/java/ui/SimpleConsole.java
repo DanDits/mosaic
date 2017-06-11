@@ -142,6 +142,9 @@ public class SimpleConsole {
             case "lego":
                 parameters = makeMosaicLego(typeParams, sourceFile, progress, maker);
                 break;
+            case "puzzle":
+                parameters = makeMosaicPuzzle(typeParams, sourceFile, progress, maker);
+                break;
             case "svd":
                 result = makeMosaicSVD(typeParams, sourceFile, progress, maker);
                 break;
@@ -157,6 +160,19 @@ public class SimpleConsole {
             }
         }
         return result;
+    }
+
+    private static ReconstructionParameters makeMosaicPuzzle(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+        int rows = 5;
+        int columns = 5;
+        if (typeParams.length > 0) {
+            rows = parseIntegerSafe(typeParams[0], rows);
+        }
+        if (typeParams.length > 1) {
+            columns = parseIntegerSafe(typeParams[1], columns);
+        }
+        AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
+        return maker.getMaker().makePuzzleParameters(source, rows, columns, progress);
     }
 
     private static AbstractBitmap makeMosaicSVD(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {

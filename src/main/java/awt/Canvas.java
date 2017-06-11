@@ -37,6 +37,14 @@ public class Canvas implements AbstractCanvas {
         graphics.drawImage(obtainImage(bitmap), x, y, null);
     }
 
+    @Override
+    public void drawBitmap(AbstractBitmap bitmap, int x, int y, int fromBitmapX, int fromBitmapY, int toBitmapX, int toBitmapY) {
+        ensureGraphics();
+        BufferedImage image = obtainImage(bitmap);
+        image = image.getSubimage(fromBitmapX, fromBitmapY, toBitmapX - fromBitmapX, toBitmapY - fromBitmapY);
+        graphics.drawImage(image, x, y, null);
+    }
+
     public BufferedImage stopEditing() {
         if (graphics != null) {
             graphics.dispose();

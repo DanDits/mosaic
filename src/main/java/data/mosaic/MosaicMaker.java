@@ -17,16 +17,11 @@ package data.mosaic;
 
 import data.image.*;
 import reconstruction.*;
-import reconstruction.workers.AutoLayerReconstructor;
-import reconstruction.workers.FixedLayerReconstructor;
-import reconstruction.workers.MultiRectReconstructor;
-import reconstruction.workers.RectReconstructor;
+import reconstruction.workers.*;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.ColorMetric;
 import matching.TileMatcher;
-import reconstruction.workers.CirclePatternReconstructor;
-import reconstruction.workers.LegoPatternReconstructor;
 import reconstruction.pattern.PatternReconstructor;
 
 import java.util.ArrayList;
@@ -117,6 +112,13 @@ public class MosaicMaker<S> {
 
     public RectReconstructor.RectParameters makeRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
         RectReconstructor.RectParameters params = new RectReconstructor.RectParameters(source);
+        params.wantedColumns = wantedColumns;
+        params.wantedRows = wantedRows;
+        return params;
+    }
+
+    public PuzzleReconstructor.PuzzleParameters makePuzzleParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
+        PuzzleReconstructor.PuzzleParameters params = new PuzzleReconstructor.PuzzleParameters(source);
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
         return params;

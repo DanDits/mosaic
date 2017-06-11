@@ -48,7 +48,7 @@ public class FileMosaicMaker {
 
         ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
 
-        mMosaicMaker = new MosaicMaker<>(resolutionMatcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
         mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 

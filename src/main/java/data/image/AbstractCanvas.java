@@ -8,6 +8,8 @@ public interface AbstractCanvas {
 
     void drawBitmap(AbstractBitmap bitmap, int x, int y);
 
+    void drawBitmap(AbstractBitmap bitmap, int x, int y, int fromBitmapX, int fromBitmapY, int toBitmapX, int toBitmapY);
+
     void clear();
 
     void drawColor(int color);
