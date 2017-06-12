@@ -10,8 +10,6 @@ import matching.workers.RandomMatcher;
 import matching.workers.ResolutionMatcher;
 import matching.workers.SimpleLinearTileMatcher;
 import matching.TileMatcher;
-import reconstruction.workers.CirclePatternReconstructor;
-import reconstruction.workers.LegoPatternReconstructor;
 import util.image.ColorMetric;
 
 import java.io.File;

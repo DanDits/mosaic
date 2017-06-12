@@ -22,12 +22,11 @@ public class SVDMaker {
     private final Matrix mU;
     private final Matrix mVTransposed;
     private BitmapMatrix mBitmapMatrix;
-    private int mMode;
     private final int mRank;
 
     public SVDMaker(AbstractBitmap base, int mode, final MosaicMaker.ProgressCallback
             callback) {
-        mMode = mode;
+        int mMode = mode;
         Matrix sourceMatrix;
         callback.onProgressUpdate(5);
         switch (mMode) {

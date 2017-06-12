@@ -39,8 +39,7 @@ public class ImageResolution {
 
         ImageResolution that = (ImageResolution) o;
 
-        if (width != that.width) return false;
-        return height == that.height;
+        return width == that.width && height == that.height;
     }
 
     @Override

@@ -1,8 +1,6 @@
 package reconstruction.workers;
 
-import data.image.AbstractBitmap;
-import data.image.AbstractCanvas;
-import data.image.AbstractCanvasFactory;
+import data.image.*;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
@@ -14,12 +12,16 @@ import java.util.Random;
  * Created by dd on 07.06.17.
  */
 public class PuzzleReconstructor extends Reconstructor {
-
-    private final int mRectHeight;
-    private final int mRectWidth;
-    private final AbstractCanvas mResultCanvas;
+    private static final double NOSE_SPACE_FRACTION = 0.29;
+    private static final int[] BORDER_COLORS = {0xFF1E1E1E, 0xFF7F7F7F, 0xFFAAAAAA, 0xFFD4D4D4};
+    private static final int BORDER_THICKNESS = BORDER_COLORS.length;
+    private final int rectHeight;
+    private final int rectWidth;
+    private final AbstractCanvas resultCanvas;
     private final int columns;
     private final int rows;
+    private AbstractBitmap borderRight;
+    private AbstractBitmap borderDown;
     private AbstractBitmap source;
     private AbstractBitmap result;
     private Random random;
@@ -30,7 +32,6 @@ public class PuzzleReconstructor extends Reconstructor {
     private MosaicFragment wantedFragment;
 
     public static class PuzzleParameters extends ReconstructionParameters {
-        public static final double MINIMUM_FRACTION = 0.1;
         public int wantedRows;
         public int wantedColumns;
 
@@ -66,11 +67,46 @@ public class PuzzleReconstructor extends Reconstructor {
         int actualColumns = Reconstructor.getClosestCount(source.getWidth(), parameters.wantedColumns);
         this.rows = actualRows;
         this.columns = actualColumns;
-        this.mRectHeight = source.getHeight() / actualRows;
-        this.mRectWidth = source.getWidth() / actualColumns;
+        this.rectHeight = source.getHeight() / actualRows;
+        this.rectWidth = source.getWidth() / actualColumns;
         random = new Random();
-        this.result = obtainBaseBitmap(this.mRectWidth * actualColumns, this.mRectHeight * actualRows);
-        mResultCanvas = AbstractCanvasFactory.getInstance().makeCanvas(result);
+        this.result = obtainBaseBitmap(this.rectWidth * actualColumns, this.rectHeight * actualRows);
+        resultCanvas = AbstractCanvasFactory.getInstance().makeCanvas(result);
+        createBorders();
+    }
+
+    private void createBorders() {
+        int borderWidth = Math.min(rectWidth, BORDER_THICKNESS);
+        int borderHeight = (int) (rectHeight * (1 - NOSE_SPACE_FRACTION) / 2.);
+        // TODO we can make a custom stroke for this, see http://www.java2s.com/Code/Java/2D-Graphics-GUI/CustomStrokes.htm
+        // TODO and also use this to create the puzzle nose
+        // TODO but this does not allow different colors?! and breaks portability kinda
+        AbstractCanvas rightCanvas = AbstractCanvasFactory.getInstance().makeCanvas(borderWidth, borderHeight);
+        rightCanvas.drawColor(0xFFFFFFFF);
+        for (int i = 0; i < Math.min(borderWidth, borderHeight); i++) {
+            rightCanvas.drawLine(borderWidth - 1 - i, i,
+                    borderWidth - 1 - i, borderHeight - 1 - i,
+                    BORDER_COLORS[i]);
+        }
+        borderRight = rightCanvas.obtainImage();
+
+        borderWidth = (int) (rectWidth * (1 - NOSE_SPACE_FRACTION) / 2.);
+        borderHeight = Math.min(rectHeight, BORDER_THICKNESS);
+        AbstractCanvas downCanvas = AbstractCanvasFactory.getInstance().makeCanvas(borderWidth, borderHeight);
+        downCanvas.drawColor(0xFFFFFFFF);
+        for (int i = 0; i < Math.min(borderWidth, borderHeight); i++) {
+            downCanvas.drawLine(i, borderHeight - 1 - i,
+                    borderWidth - 1 - i, borderHeight - 1 - i,
+                    BORDER_COLORS[i]);
+        }
+        borderDown = downCanvas.obtainImage();
+    }
+
+    private void createNoses() {
+        int noseWidth = getPuzzleHorizontalNoseLength();
+        int noseHeight = (int) (NOSE_SPACE_FRACTION * rectHeight);
+        AbstractCanvas canvas = AbstractCanvasFactory.getInstance().makeCanvas(noseWidth, noseHeight);
+        canvas.drawColor(AbstractColor.TRANSPARENT);
     }
 
     private class PuzzlePiece {
@@ -93,28 +129,40 @@ public class PuzzleReconstructor extends Reconstructor {
         }
 
         private int getRequiredWidth() {
-            return mRectWidth + (genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0)
+            return rectWidth + (genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0)
                     + (genderRight == 1 ? getPuzzleHorizontalNoseLength() : 0);
         }
 
         private int getRequiredHeight() {
-            return mRectHeight + (genderUp == 1 ? getPuzzleVerticalNoseLength() : 0)
+            return rectHeight + (genderUp == 1 ? getPuzzleVerticalNoseLength() : 0)
                     + (genderDown == 1 ? getPuzzleVerticalNoseLength() : 0);
         }
 
         public int getAverageColor() {
-            int startX = posX * mRectWidth - (genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0);
-            int startY = posY * mRectHeight - (genderUp == 1 ? getPuzzleVerticalNoseLength() : 0);
-            int endX = (posX + 1) * mRectWidth + (genderRight == 1 ? getPuzzleHorizontalNoseLength() : 0);
-            int endY = (posY + 1) * mRectHeight + (genderDown == 1 ? getPuzzleVerticalNoseLength() : 0);
+            int startX = posX * rectWidth - (genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0);
+            int startY = posY * rectHeight - (genderUp == 1 ? getPuzzleVerticalNoseLength() : 0);
+            int endX = (posX + 1) * rectWidth + (genderRight == 1 ? getPuzzleHorizontalNoseLength() : 0);
+            int endY = (posY + 1) * rectHeight + (genderDown == 1 ? getPuzzleVerticalNoseLength() : 0);
             return ColorAnalysisUtil.getAverageColor(source, startX, endX, startY, endY);
         }
 
         public void draw(AbstractBitmap bitmap) {
             this.bitmap = bitmap;
             drawInner();
+            drawBorders();
             drawUpper();
             drawLeft();
+        }
+
+        private void drawBorders() {
+            resultCanvas.drawMultiplicativly(borderRight, (posX + 1) * rectWidth - borderRight.getWidth(),
+                    posY * rectHeight);
+            resultCanvas.drawMultiplicativly(borderRight, (posX + 1) * rectWidth - borderRight.getWidth(),
+                    (posY + 1) * rectHeight - borderRight.getHeight());
+            resultCanvas.drawMultiplicativly(borderDown, posX * rectWidth,
+                    (posY + 1) * rectHeight - borderDown.getHeight());
+            resultCanvas.drawMultiplicativly(borderDown, (posX + 1) * rectWidth - borderDown.getWidth(),
+                    (posY + 1) * rectHeight - borderDown.getHeight());
         }
 
         private void drawLeft() {
@@ -124,7 +172,6 @@ public class PuzzleReconstructor extends Reconstructor {
         }
 
         private void drawRight() {
-
         }
 
         public void drawInner() {
@@ -132,7 +179,7 @@ public class PuzzleReconstructor extends Reconstructor {
             int startY = genderUp == 1 ? getPuzzleVerticalNoseLength() : 0;
             int endX = genderRight == 1 ? bitmap.getWidth() - getPuzzleHorizontalNoseLength() : bitmap.getWidth();
             int endY = genderDown == 1 ? bitmap.getHeight() - getPuzzleVerticalNoseLength() : bitmap.getHeight();
-            mResultCanvas.drawBitmap(bitmap, posX * mRectWidth, posY * mRectHeight, startX, startY, endX, endY);
+            resultCanvas.drawBitmap(bitmap, posX * rectWidth, posY * rectHeight, startX, startY, endX, endY);
         }
 
         public void drawUpper() {
@@ -148,15 +195,15 @@ public class PuzzleReconstructor extends Reconstructor {
     }
 
     private int getNewGender() {
-        return random.nextBoolean() ? 1 : -1;
+        return random.nextBoolean() ? 1 : -1; // no offense
     }
 
     private int getPuzzleHorizontalNoseLength() {
-        return (int) (mRectWidth * 0.2);
+        return (int) (rectWidth * 0.2);
     }
 
     private int getPuzzleVerticalNoseLength() {
-        return (int) (mRectHeight * 0.2);
+        return (int) (rectHeight * 0.2);
     }
 
     @Override

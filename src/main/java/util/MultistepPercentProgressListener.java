@@ -75,11 +75,11 @@ public class MultistepPercentProgressListener implements PercentProgressListener
             throw new IllegalArgumentException("No weights given.");
         }
         reset();
-        for (int i = 0; i < weights.length; i++) {
-            if (weights[i] >= 0. && weights[i] <= 1.) {
-                mWeights.add(weights[i]);
+        for (double weight : weights) {
+            if (weight >= 0. && weight <= 1.) {
+                mWeights.add(weight);
             } else {
-                throw new IllegalArgumentException("Negative or weight > 1 given: " + weights[i]);
+                throw new IllegalArgumentException("Negative or weight > 1 given: " + weight);
             }
         }
         return this;

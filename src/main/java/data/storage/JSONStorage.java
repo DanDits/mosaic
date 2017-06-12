@@ -12,6 +12,7 @@ import java.util.*;
 /**
  * Created by dd on 03.06.17.
  */
+@SuppressWarnings("unchecked") // as the JSON library does not use generics
 public class JSONStorage<S> {
 
     public boolean saveToJSON(File file, Collection<MosaicTile<S>> tiles) {

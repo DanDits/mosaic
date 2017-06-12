@@ -12,6 +12,8 @@ public class AbstractColor {
     }
 
     public static int rgb(int red, int green, int blue) {
+        // 0xFF << 24 technically does not fit into integer as the leftmost bit is the sign bit
+        //noinspection NumericOverflow
         return (0xFF << 24) | ((red & 0xFF) << 16) | ((green & 0xFF) << 8) | (blue & 0xFF);
     }
 

@@ -12,6 +12,7 @@ import java.util.Optional;
  */
 public class TrivialMatcher<S> extends TileMatcher<S> {
     private NullTile mTile;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")  // to prevent having to wrap over and over again
     private final Optional<NullTile> mOptionalTile;
 
     public TrivialMatcher() {

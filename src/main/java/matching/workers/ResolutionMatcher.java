@@ -37,9 +37,8 @@ public class ResolutionMatcher<S> extends TileMatcher<S> {
             final double wantedFraction = wantedTile.getWidth() / (double) wantedTile.getHeight();
             System.out.println("Dropped every tile when using accuracy " + accuracy + " for resolution " + wantedTile.getWidth() + "x" + wantedTile.getHeight() + " now searching for best fit.");
             // panic, we want to get something at least
-            Optional<MosaicTile<S>> tileCandidate = tiles.stream()
+            return tiles.stream()
                     .min(Comparator.comparingDouble(tile -> getResolutionDifference(tile, wantedFraction)));
-            return tileCandidate;
         }
         System.out.println("Got " + useTiles.size() + " tiles with fitting resolution: " + wantedTile.getWidth() + "x" + wantedTile.getHeight());
         return useTiles.stream().min(Comparator.comparingDouble(

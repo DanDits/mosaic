@@ -7,6 +7,7 @@ import data.image.PorterDuffMode;
 import util.image.BlendComposite;
 
 import java.awt.*;
+import java.awt.geom.QuadCurve2D;
 import java.awt.image.BufferedImage;
 
 /**
@@ -14,6 +15,7 @@ import java.awt.image.BufferedImage;
  */
 public class Canvas implements AbstractCanvas {
 
+    public static final BasicStroke ONE_PIXEL_STROKE = new BasicStroke(1);
     private final BufferedImage base;
     private final AbstractBitmap bitmap;
     private Graphics graphics;
@@ -89,6 +91,31 @@ public class Canvas implements AbstractCanvas {
         return bitmap;
     }
 
+    @Override
+    public void drawLine(int fromX, int fromY, int toX, int toY, int color) {
+        ensureGraphics();
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        Color prevColor = graphics.getColor();
+        graphics.setColor(argbToColor(color));
+        Stroke prevStroke = graphics2D.getStroke();
+        graphics2D.setStroke(ONE_PIXEL_STROKE);
+        graphics.drawLine(fromX, fromY, toX, toY);
+        graphics.setColor(prevColor);
+        graphics2D.setStroke(prevStroke);
+    }
+
+    @Override
+    public void drawQuadraticCurve(int fromX, int fromY, int overX, int overY, int toX, int toY, int color) {
+        ensureGraphics();
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        Color prevColor = graphics2D.getColor();
+        graphics2D.setColor(argbToColor(color));
+        QuadCurve2D q = new QuadCurve2D.Double();
+        q.setCurve(fromX, fromY, overX, overY, toX, toY);
+        graphics2D.setColor(prevColor);
+        graphics2D.draw(q);
+    }
+
     private static Composite porterDuffToComposite(PorterDuffMode mode) {
         int key;
         switch (mode) {
@@ -135,14 +162,14 @@ public class Canvas implements AbstractCanvas {
     }
 
     @Override
-    public void drawMultiplicativly(AbstractBitmap bitmap) {
+    public void drawMultiplicativly(AbstractBitmap bitmap, int x, int y) {
         ensureGraphics();
         Graphics2D graphics2D = (Graphics2D) graphics;
         BufferedImage image = obtainImage(bitmap);
         Composite prevComp = graphics2D.getComposite();
         Composite comp = BlendComposite.Multiply;
         graphics2D.setComposite(comp);
-        graphics2D.drawImage(image, 0, 0, null);
+        graphics2D.drawImage(image, x, y, null);
         graphics2D.setComposite(prevComp);
     }
 

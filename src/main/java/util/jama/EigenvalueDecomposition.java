@@ -28,11 +28,6 @@ public class EigenvalueDecomposition implements java.io.Serializable {
    */
    private int n;
 
-   /** Symmetry flag.
-   @serial internal symmetry flag.
-   */
-   private boolean issymmetric;
-
    /** Arrays for internal storage of eigenvalues.
    @serial internal storage of eigenvalues.
    */
@@ -860,7 +855,9 @@ public class EigenvalueDecomposition implements java.io.Serializable {
       d = new double[n];
       e = new double[n];
 
-      issymmetric = true;
+      /* Symmetry flag.
+   */
+      boolean issymmetric = true;
       for (int j = 0; (j < n) & issymmetric; j++) {
          for (int i = 0; (i < n) & issymmetric; i++) {
             issymmetric = (A[i][j] == A[j][i]);

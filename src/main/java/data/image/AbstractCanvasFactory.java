@@ -7,11 +7,14 @@ import awt.CanvasFactory;
  */
 public abstract class AbstractCanvasFactory {
 
-    private static final CanvasFactory INSTANCE = new CanvasFactory();
-
     public static AbstractCanvasFactory getInstance() {
-        return INSTANCE;
+        return CanvasFactory.INSTANCE;
     }
 
     public abstract AbstractCanvas makeCanvas(AbstractBitmap bitmap);
+
+    public AbstractCanvas makeCanvas(int width, int height) {
+        AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(width, height).createBitmap();
+        return makeCanvas(bitmap);
+    }
 }

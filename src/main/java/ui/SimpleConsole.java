@@ -7,7 +7,6 @@ import data.mosaic.MosaicTile;
 import reconstruction.ReconstructionParameters;
 import reconstruction.workers.CirclePatternReconstructor;
 import reconstruction.workers.LegoPatternReconstructor;
-import reconstruction.workers.RectReconstructor;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
  * Created by dd on 03.06.17.
  */
 public class SimpleConsole {
-    private static Scanner in = new Scanner(System.in);;
+    private static Scanner in = new Scanner(System.in);
     private static final String COMMAND_HELP = "-h";
     private static final String COMMAND_ANALYZE = "-a";
     private static final String COMMAND_MOSAIC = "-m";
@@ -65,7 +64,11 @@ public class SimpleConsole {
             files.add(root);
             return files;
         }
-        return Arrays.stream(root.listFiles()).filter(file -> !file.isDirectory()).collect(Collectors.toList());
+        File[] children = root.listFiles();
+        if (children == null) {
+            return files;
+        }
+        return Arrays.stream(children).filter(file -> !file.isDirectory()).collect(Collectors.toList());
     }
 
     private static int parseIntegerSafe(String toParse, int fallback) {

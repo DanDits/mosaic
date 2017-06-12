@@ -88,9 +88,7 @@ public class MosaicFragment {
 
 		MosaicFragment that = (MosaicFragment) o;
 
-		if (width != that.width) return false;
-		if (height != that.height) return false;
-		return averageRGB == that.averageRGB;
+		return width == that.width && height == that.height && averageRGB == that.averageRGB;
 	}
 
 	@Override

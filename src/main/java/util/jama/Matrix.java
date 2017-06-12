@@ -188,6 +188,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
 
    /** Clone the Matrix object.
    */
+   @SuppressWarnings("MethodDoesntCallSuperMethod")
    @Override
    public Object clone () {
       return this.copy();
@@ -1017,6 +1018,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
       java.util.Vector<Double> vD = new java.util.Vector<>();
 
       // Ignore initial empty lines
+      //noinspection StatementWithEmptyBody
       while (tokenizer.nextToken() == StreamTokenizer.TT_EOL);
       if (tokenizer.ttype == StreamTokenizer.TT_EOF)
 	throw new java.io.IOException("Unexpected EOF on matrix read.");
@@ -1027,7 +1029,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
       int n = vD.size();  // Now we've got the number of columns!
       double row[] = new double[n];
       for (int j=0; j<n; j++)  // extract the elements of the 1st row.
-         row[j]=vD.elementAt(j).doubleValue();
+         row[j]= vD.elementAt(j);
       java.util.Vector<double[]> v = new java.util.Vector<>();
       v.addElement(row);  // Start storing rows instead of columns.
       while (tokenizer.nextToken() == StreamTokenizer.TT_WORD) {
@@ -1037,7 +1039,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
          do {
             if (j >= n) throw new java.io.IOException
                ("Row " + v.size() + " is too long.");
-            row[j++] = Double.valueOf(tokenizer.sval).doubleValue();
+            row[j++] = Double.valueOf(tokenizer.sval);
          } while (tokenizer.nextToken() == StreamTokenizer.TT_WORD);
          if (j < n) throw new java.io.IOException
             ("Row " + v.size() + " is too short.");

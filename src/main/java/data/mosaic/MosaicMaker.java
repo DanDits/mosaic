@@ -24,8 +24,6 @@ import util.image.ColorMetric;
 import matching.TileMatcher;
 import reconstruction.pattern.PatternReconstructor;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**

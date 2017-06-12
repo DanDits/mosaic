@@ -270,6 +270,7 @@ public final class BlendComposite implements Composite {
         return mode == bc.mode && alpha == bc.alpha;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean checkComponentsOrder(ColorModel cm) {
         if (cm instanceof DirectColorModel &&
                 cm.getTransferType() == DataBuffer.TYPE_INT) {

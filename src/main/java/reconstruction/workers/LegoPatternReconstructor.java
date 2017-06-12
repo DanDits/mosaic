@@ -77,7 +77,7 @@ public class LegoPatternReconstructor extends PatternReconstructor {
             }
             AbstractCanvas canvas = mCanvas;
             canvas.drawColor(color);
-            canvas.drawMultiplicativly(legoBitmap);
+            canvas.drawMultiplicativly(legoBitmap, 0, 0);
             return base;
         }
 
@@ -107,13 +107,13 @@ public class LegoPatternReconstructor extends PatternReconstructor {
     public <S> TileMatcher<S> makeMatcher(boolean useAlpha, ColorMetric metric) {
         List<MosaicTile<S>> tiles = new ArrayList<>();
         for (int value : LEGO_COLOR_PALETTE_SOLID) {
-            tiles.add(new VoidTile<S>(value));
+            tiles.add(new VoidTile<>(value));
         }
         for (int value : LEGO_COLOR_PALETTE_TRANSPARENT) {
-            tiles.add(new VoidTile<S>(value));
+            tiles.add(new VoidTile<>(value));
         }
         for (int value : LEGO_COLOR_PALETTE_EFFECTS) {
-            tiles.add(new VoidTile<S>(value));
+            tiles.add(new VoidTile<>(value));
         }
         return new SimpleLinearTileMatcher<>(tiles, useAlpha, metric);
     }
