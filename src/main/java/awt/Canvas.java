@@ -112,8 +112,8 @@ public class Canvas implements AbstractCanvas {
         graphics2D.setColor(argbToColor(color));
         QuadCurve2D q = new QuadCurve2D.Double();
         q.setCurve(fromX, fromY, overX, overY, toX, toY);
-        graphics2D.setColor(prevColor);
         graphics2D.draw(q);
+        graphics2D.setColor(prevColor);
     }
 
     private static Composite porterDuffToComposite(PorterDuffMode mode) {
