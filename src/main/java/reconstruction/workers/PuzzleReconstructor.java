@@ -13,7 +13,7 @@ import java.util.Random;
  */
 public class PuzzleReconstructor extends Reconstructor {
     private static final double NOSE_SPACE_FRACTION = 0.2;
-    private static final double NOSE_THICKNESS_FRACTION = 0.33;
+    private static final double NOSE_THICKNESS_FRACTION = 0.4;
     private static final int[] BORDER_COLORS = {0xFF7F7F7F, 0xFFAAAAAA, 0xFFD4D4D4, 0xFFEEEEEE};
     private static final int BORDER_THICKNESS = BORDER_COLORS.length;
     private final int rectHeight;
@@ -32,6 +32,12 @@ public class PuzzleReconstructor extends Reconstructor {
     private PuzzlePiece[] currentRow;
     private MosaicFragment wantedFragment;
     private AbstractBitmap noseHorizontalRight;
+    private AbstractBitmap noseHorizontalLeft;
+    private AbstractBitmap noseVerticalUp;
+    private AbstractBitmap noseVerticalDown;
+    private AbstractCanvas noseBufferHorizontal;
+    private AbstractCanvas noseBufferVertical;
+
 
     public static class PuzzleParameters extends ReconstructionParameters {
         public int wantedRows;
@@ -81,9 +87,7 @@ public class PuzzleReconstructor extends Reconstructor {
     private void createBorders() {
         int borderWidth = Math.min(rectWidth, BORDER_THICKNESS);
         int borderHeight = (int) (rectHeight * (1 - NOSE_SPACE_FRACTION) / 2.);
-        // TODO we can make a custom stroke for this, see http://www.java2s.com/Code/Java/2D-Graphics-GUI/CustomStrokes.htm
-        // TODO and also use this to create the puzzle nose
-        // TODO but this does not allow different colors?! and breaks portability kinda
+
         AbstractCanvas rightCanvas = AbstractCanvasFactory.getInstance().makeCanvas(borderWidth, borderHeight);
         rightCanvas.drawColor(0xFFFFFFFF);
         for (int i = 0; i < Math.min(borderWidth, borderHeight); i++) {
@@ -106,19 +110,63 @@ public class PuzzleReconstructor extends Reconstructor {
     }
 
     private void createNoses() {
-        int noseWidth = getPuzzleHorizontalNoseLength();
-        int noseHeight = (int) (NOSE_THICKNESS_FRACTION * rectHeight);
+        noseHorizontalRight = createNose(getPuzzleHorizontalNoseLength(), (int) (NOSE_THICKNESS_FRACTION * rectHeight), rectHeight, true);
+        noseHorizontalLeft = noseHorizontalRight.getRotatedCopy(180);
+        noseVerticalDown = createNose((int) (NOSE_THICKNESS_FRACTION * rectWidth), getPuzzleVerticalNoseLength(), rectWidth, false);
+        noseVerticalUp = noseVerticalDown.getRotatedCopy(180);
+        AbstractBitmap buffer1 = AbstractBitmapFactory.makeInstance(noseHorizontalRight.getWidth(), noseHorizontalRight.getHeight()).createBitmap();
+        noseBufferHorizontal = AbstractCanvasFactory.getInstance().makeCanvas(buffer1);
+        AbstractBitmap buffer2 = AbstractBitmapFactory.makeInstance(noseVerticalDown.getWidth(), noseVerticalDown.getHeight()).createBitmap();
+        noseBufferVertical = AbstractCanvasFactory.getInstance().makeCanvas(buffer2);
+
+    }
+
+    private static AbstractBitmap createNose(int noseWidth, int noseHeight, int noseStartAreaDimension, boolean horizontal) {
+        if (!horizontal) {
+            int temp = noseWidth;
+            noseWidth = noseHeight;
+            noseHeight = temp;
+        }
+        // if we render the quadratic curves with antialiasing enabled we get visual problems when drawing the nose
+        // multiplicativly onto the puzzle piece bitmap as bright pixels are inside or outside the border line
         AbstractCanvas canvas = AbstractCanvasFactory.getInstance().makeCanvas(noseWidth, noseHeight);
-        canvas.drawColor(AbstractColor.TRANSPARENT);
+        int innerColor = 0xFFFFFFFF;
+        canvas.drawColor(innerColor);
         int color = BORDER_COLORS[0];
-        int startOffsetY = (int) (rectHeight / 2. - rectHeight * NOSE_SPACE_FRACTION / 2. - (1 - NOSE_THICKNESS_FRACTION) * rectHeight / 2);
-        int firstPartEndX = (int) (noseWidth * 0.45);
-        int firstPartEndY = (int)(startOffsetY * 0.6);
-        canvas.drawQuadraticCurve(0, startOffsetY, (int) (noseWidth * 0.4), (int) (9./10. * startOffsetY), firstPartEndX, firstPartEndY, color);
+        int startOffsetY = (int) (noseStartAreaDimension / 2. * (NOSE_THICKNESS_FRACTION - NOSE_SPACE_FRACTION));
+
+        int firstPartMiddleX = (int) (noseWidth * 0.3);
+        int firstPartMiddleY = (int) (startOffsetY * 1.);
+        int firstPartEndX = (int) (noseWidth * 0.4);
+        int firstPartEndY = (int) (startOffsetY * 0.6);
+        canvas.drawQuadraticCurve(0, startOffsetY, firstPartMiddleX, firstPartMiddleY, firstPartEndX, firstPartEndY, color);
+
+        int secondPartMiddleX = (int) (noseWidth * 0.45);
+        int secondPartMiddleY = (int) (0.00 * startOffsetY);
         int secondPartEndX = (int) ( noseWidth * 0.7);
-        canvas.drawQuadraticCurve(firstPartEndX, firstPartEndY, (int) (noseWidth * 0.62), (int) (0.05 * startOffsetY), secondPartEndX, 0, color);
-        canvas.drawQuadraticCurve(secondPartEndX, 0, noseWidth, (int) (noseHeight * 0.5), secondPartEndX, noseHeight, color);
-        noseHorizontalRight = canvas.obtainImage();
+        int secondPartEndY = 0;
+        canvas.drawQuadraticCurve(firstPartEndX, firstPartEndY, secondPartMiddleX, secondPartMiddleY, secondPartEndX, secondPartEndY, color);
+
+        int thirdPartMiddleX = (int) (noseWidth * 0.95);
+        int thirdPartMiddleY = (int) (0.15 * startOffsetY);
+        int thirdPartEndX = (int) (noseWidth * 1.);
+        int thirdPartEndY = noseHeight / 2;
+        canvas.drawQuadraticCurve(secondPartEndX, secondPartEndY, thirdPartMiddleX, thirdPartMiddleY, thirdPartEndX, thirdPartEndY,color);
+
+        canvas.drawQuadraticCurve(0, noseHeight - startOffsetY - 1, firstPartMiddleX, noseHeight - firstPartMiddleY, firstPartEndX, noseHeight - firstPartEndY - 1, color);
+        canvas.drawQuadraticCurve(firstPartEndX, noseHeight - firstPartEndY - 1, secondPartMiddleX, noseHeight - secondPartMiddleY, secondPartEndX, noseHeight - secondPartEndY - 1, color);
+        canvas.drawQuadraticCurve(secondPartEndX, noseHeight - secondPartEndY - 1, thirdPartMiddleX, noseHeight - thirdPartMiddleY, thirdPartEndX, noseHeight - thirdPartEndY - 1, color);
+
+        canvas.floodFill(0, 0, AbstractColor.TRANSPARENT);
+        canvas.floodFill(0, noseHeight - 1, AbstractColor.TRANSPARENT);
+        canvas.floodFill(noseWidth - 1, 0, AbstractColor.TRANSPARENT);
+        canvas.floodFill(noseWidth - 1, noseHeight - 1, AbstractColor.TRANSPARENT);
+        AbstractBitmap nose = canvas.obtainImage();
+        if (!horizontal) {
+            return nose.getRotatedCopy(90);
+        }
+        return canvas.obtainImage();
+
     }
 
     private class PuzzlePiece {
@@ -181,11 +229,25 @@ public class PuzzleReconstructor extends Reconstructor {
             if (genderLeft == -1) {
                 leftPiece.drawRight();
             }
+            if (genderLeft == 1) {
+                int fromY = (int) ((1 - NOSE_THICKNESS_FRACTION) * rectHeight / 2);
+                fromY += genderUp == 1 ? getPuzzleVerticalNoseLength() : 0;
+                drawNose(noseHorizontalLeft, noseBufferHorizontal, posX * rectWidth - noseHorizontalLeft.getWidth(),
+                        (int) (posY * rectHeight + (1 - NOSE_THICKNESS_FRACTION) * rectHeight / 2),
+                        0, fromY);
+            }
         }
 
         private void drawRight() {
             if (genderRight == 1) {
-                resultCanvas.drawBitmap(noseHorizontalRight, (posX + 1) * rectWidth, (int) (posY * rectHeight + (1 - NOSE_THICKNESS_FRACTION) * rectHeight / 2));
+                int fromX = rectWidth;
+                fromX += genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0;
+                int fromY = (int) ((1 - NOSE_THICKNESS_FRACTION) * rectHeight / 2);
+                fromY += genderUp == 1 ? getPuzzleVerticalNoseLength() : 0;
+                drawNose(noseHorizontalRight, noseBufferHorizontal,
+                        (posX + 1) * rectWidth,
+                        (int) (posY * rectHeight + (1 - NOSE_THICKNESS_FRACTION) * rectHeight / 2),
+                        fromX, fromY);
             }
         }
 
@@ -197,14 +259,39 @@ public class PuzzleReconstructor extends Reconstructor {
             resultCanvas.drawBitmap(bitmap, posX * rectWidth, posY * rectHeight, startX, startY, endX, endY);
         }
 
+        public void drawNose(AbstractBitmap nose, AbstractCanvas buffer, int x, int y, int fromX, int fromY) {
+            //buffer.drawBitmapUsingPorterDuff(buffer.obtainImage(), 0, 0, PorterDuffMode.CLEAR);
+            buffer.drawBitmap(nose, 0, 0);
+            buffer.drawMultiplicativly(bitmap, 0, 0, fromX, fromY, fromX + nose.getWidth(), fromY + nose.getHeight());
+            buffer.drawBitmapUsingPorterDuff(nose, 0, 0, PorterDuffMode.DESTINATION_IN);
+            resultCanvas.drawBitmapUsingPorterDuff(buffer.obtainImage(), x, y, PorterDuffMode.SOURCE_OVER);
+        }
+
         public void drawUpper() {
             if (genderUp == -1) {
                 upperPiece.drawLower();
             }
+            if (genderUp == 1) {
+                int fromX = (int) ((1 - NOSE_THICKNESS_FRACTION) * rectWidth / 2);
+                fromX += genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0;
+                drawNose(noseVerticalUp, noseBufferVertical,
+                        (int) (posX * rectWidth + (1 - NOSE_THICKNESS_FRACTION) * rectWidth / 2.),
+                        posY * rectHeight - noseVerticalUp.getHeight(),
+                        fromX, 0);
+            }
         }
 
         public void drawLower() {
-
+            if (genderDown == 1) {
+                int fromX = (int) ((1 - NOSE_THICKNESS_FRACTION) * rectWidth / 2);
+                fromX += genderLeft == 1 ? getPuzzleHorizontalNoseLength() : 0;
+                int fromY = rectHeight;
+                fromY += genderUp == 1 ? getPuzzleVerticalNoseLength() : 0;
+                drawNose(noseVerticalDown, noseBufferVertical,
+                        (int) (posX * rectWidth + (1 - NOSE_THICKNESS_FRACTION) * rectWidth / 2.),
+                        (posY + 1) * rectHeight,
+                        fromX, fromY);
+            }
         }
 
     }
@@ -214,11 +301,11 @@ public class PuzzleReconstructor extends Reconstructor {
     }
 
     private int getPuzzleHorizontalNoseLength() {
-        return (int) (rectWidth * 0.35);
+        return (int) (rectWidth * 0.33);
     }
 
     private int getPuzzleVerticalNoseLength() {
-        return (int) (rectHeight * 0.2);
+        return (int) (rectHeight * 0.33);
     }
 
     @Override

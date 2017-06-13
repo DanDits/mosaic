@@ -3,6 +3,7 @@ package awt;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -38,6 +39,9 @@ public class BitmapFactory extends AbstractBitmapFactory {
                     return null;
                 }
                 return new Bitmap(image);
+            } catch (UnsupportedFormatException format) {
+                System.err.println("Not an image file:" + file);
+                return null;
             } catch (IOException e) {
                 e.printStackTrace();
             }

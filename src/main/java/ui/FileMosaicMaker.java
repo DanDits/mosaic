@@ -41,12 +41,13 @@ public class FileMosaicMaker {
         matcher.setTileReuseLimit(3);
 
         RandomMatcher<String> matcherRandom = new RandomMatcher<>(tiles);
-        matcherRandom.setTileReuseLimit(5);
+        matcherRandom.setTileReuseLimit(TileMatcher.REUSE_NONE);
         matcherRandom.setRandom(new Random(45));
 
         ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
 
-        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+
+        mMosaicMaker = new MosaicMaker<>(matcherRandom, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
         mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 

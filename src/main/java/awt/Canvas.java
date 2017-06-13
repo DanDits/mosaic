@@ -4,11 +4,16 @@ import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractColor;
 import data.image.PorterDuffMode;
+import net.coobird.thumbnailator.Thumbnailator;
+import net.coobird.thumbnailator.Thumbnails;
 import util.image.BlendComposite;
 
 import java.awt.*;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Deque;
+import java.util.LinkedList;
 
 /**
  * Created by dd on 03.06.17.
@@ -105,9 +110,47 @@ public class Canvas implements AbstractCanvas {
     }
 
     @Override
+    public void floodFill(int x, int y, int color) {
+        ensureGraphics();
+
+        int originalColor = bitmap.getPixel(x, y);
+        if (color == originalColor) {
+            return;
+        }
+        Deque<Integer> stackX = new LinkedList<>();
+        Deque<Integer> stackY = new LinkedList<>();
+        stackX.add(x);
+        stackY.add(y);
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        while (!stackX.isEmpty()) {
+            int currX = stackX.pop();
+            int currY = stackY.pop();
+            if (bitmap.getPixel(currX, currY) == originalColor) {
+                bitmap.setPixel(currX, currY, color);
+                attemptFloodToNeighbor(currX + 1, currY, stackX, stackY, width, height, originalColor);
+                attemptFloodToNeighbor(currX - 1, currY, stackX, stackY, width, height, originalColor);
+                attemptFloodToNeighbor(currX, currY + 1, stackX, stackY, width, height, originalColor);
+                attemptFloodToNeighbor(currX, currY - 1, stackX, stackY, width, height, originalColor);
+            }
+        }
+    }
+
+    private void attemptFloodToNeighbor(int x, int y, Deque<Integer> stackX, Deque<Integer> stackY, int width, int height, int originalColor) {
+        if (x < 0 || y < 0 || x >= width || y >= height) {
+            return;
+        }
+        if (bitmap.getPixel(x, y) == originalColor) {
+            stackX.add(x);
+            stackY.add(y);
+        }
+    }
+
+    @Override
     public void drawQuadraticCurve(int fromX, int fromY, int overX, int overY, int toX, int toY, int color) {
         ensureGraphics();
         Graphics2D graphics2D = (Graphics2D) graphics;
+        //graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Color prevColor = graphics2D.getColor();
         graphics2D.setColor(argbToColor(color));
         QuadCurve2D q = new QuadCurve2D.Double();
@@ -169,6 +212,19 @@ public class Canvas implements AbstractCanvas {
         Composite prevComp = graphics2D.getComposite();
         Composite comp = BlendComposite.Multiply;
         graphics2D.setComposite(comp);
+        graphics2D.drawImage(image, x, y, null);
+        graphics2D.setComposite(prevComp);
+    }
+
+    @Override
+    public void drawMultiplicativly(AbstractBitmap bitmap, int x, int y, int fromBitmapX, int fromBitmapY, int toBitmapX, int toBitmapY) {
+        ensureGraphics();
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        BufferedImage image = obtainImage(bitmap);
+        Composite prevComp = graphics2D.getComposite();
+        Composite comp = BlendComposite.Multiply;
+        graphics2D.setComposite(comp);
+        image = image.getSubimage(fromBitmapX, fromBitmapY, toBitmapX - fromBitmapX, toBitmapY - fromBitmapY);
         graphics2D.drawImage(image, x, y, null);
         graphics2D.setComposite(prevComp);
     }

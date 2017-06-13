@@ -24,6 +24,8 @@ import util.image.ColorMetric;
 import matching.TileMatcher;
 import reconstruction.pattern.PatternReconstructor;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -78,6 +80,7 @@ public class MosaicMaker<S> {
             return null;
         }
         if (cutResultToSourceAlpha && source != null) {
+            System.out.println("Cutting finished mosaic to source alpha.");
             AbstractCanvas canvas = AbstractCanvasFactory.getInstance().makeCanvas(mosaic);
             canvas.drawBitmapUsingPorterDuff(source, 0, 0, PorterDuffMode.DESTINATION_IN);
             return canvas.obtainImage();

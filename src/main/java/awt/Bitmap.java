@@ -2,10 +2,13 @@ package awt;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
 
 import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import net.coobird.thumbnailator.Thumbnails;
 
 import javax.imageio.ImageIO;
 
@@ -24,6 +27,25 @@ public class Bitmap implements AbstractBitmap {
 
     BufferedImage getImage() {
         return image;
+    }
+
+    @Override
+    public AbstractBitmap getCopy() {
+        BufferedImage copy = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        Graphics graphics = copy.getGraphics();
+        graphics.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+        graphics.dispose();
+        return new Bitmap(copy);
+    }
+
+    @Override
+    public AbstractBitmap getRotatedCopy(double degree) {
+        try {
+            return new Bitmap(Thumbnails.of(image).scale(1.).rotate(degree).asBufferedImage());
+        } catch (IOException e) {
+            System.err.println("Some error rotation:" + e);
+            throw new IllegalArgumentException("Could not rotate.");
+        }
     }
 
     @Override
@@ -80,8 +102,13 @@ public class Bitmap implements AbstractBitmap {
 
     private BufferedImage makeResizedImage(int width, int height) {
         Image tmp = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        BufferedImage dimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
+        BufferedImage dimg;
+        if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+            dimg = new BufferedImage(width, height, image.getType(), (IndexColorModel) image.getColorModel());
+        } else {
+            dimg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        }
         Graphics2D g2d = dimg.createGraphics();
         g2d.drawImage(tmp, 0, 0, null);
         g2d.dispose();

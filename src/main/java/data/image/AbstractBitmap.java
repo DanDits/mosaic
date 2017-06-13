@@ -8,6 +8,8 @@ import java.io.IOException;
  */
 public interface AbstractBitmap {
 
+    AbstractBitmap getCopy();
+
     int getWidth();
     int getHeight();
     int getPixel(int x, int y);
@@ -22,4 +24,5 @@ public interface AbstractBitmap {
     default ImageResolution getResolution() {
         return new ImageResolution(getWidth(), getHeight());
     }
+    AbstractBitmap getRotatedCopy(double degree);
 }
