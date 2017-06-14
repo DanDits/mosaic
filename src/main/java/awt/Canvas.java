@@ -62,7 +62,7 @@ public class Canvas implements AbstractCanvas {
 
     private Color argbToColor(int argb) {
         return new Color(AbstractColor.red(argb), AbstractColor.green(argb), AbstractColor.blue(argb),
-                AbstractColor.alpha(argb));
+                         AbstractColor.alpha(argb));
     }
 
     @Override
@@ -77,6 +77,20 @@ public class Canvas implements AbstractCanvas {
         ensureGraphics();
         graphics.setColor(argbToColor(argb));
         graphics.fillRect(0, 0, base.getWidth(), base.getHeight());
+    }
+
+    @Override
+    public void drawBitmapUsingPorterDuff(AbstractBitmap bitmap, int x, int y, int fromBitmapX, int fromBitmapY,
+                                          int toBitmapX, int toBitmapY, PorterDuffMode mode) {
+        ensureGraphics();
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        BufferedImage image = obtainImage(bitmap);
+        Composite prevComp = graphics2D.getComposite();
+        Composite comp = porterDuffToComposite(mode);
+        graphics2D.setComposite(comp);
+        image = image.getSubimage(fromBitmapX, fromBitmapY, toBitmapX - fromBitmapX, toBitmapY - fromBitmapY);
+        graphics2D.drawImage(image, x, y, null);
+        graphics2D.setComposite(prevComp);
     }
 
     public void drawBitmapUsingPorterDuff(AbstractBitmap bitmap, int x, int y, PorterDuffMode mode) {
@@ -147,10 +161,17 @@ public class Canvas implements AbstractCanvas {
     }
 
     @Override
+    public void setAntiAliasing(boolean enable) {
+        ensureGraphics();
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, enable ? RenderingHints.VALUE_ANTIALIAS_ON
+                : RenderingHints.VALUE_ANTIALIAS_OFF);
+    }
+
+    @Override
     public void drawQuadraticCurve(int fromX, int fromY, int overX, int overY, int toX, int toY, int color) {
         ensureGraphics();
         Graphics2D graphics2D = (Graphics2D) graphics;
-        //graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Color prevColor = graphics2D.getColor();
         graphics2D.setColor(argbToColor(color));
         QuadCurve2D q = new QuadCurve2D.Double();

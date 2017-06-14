@@ -21,11 +21,15 @@ public interface AbstractCanvas {
     void drawMultiplicativly(AbstractBitmap image, int x, int y);
     void drawMultiplicativly(AbstractBitmap bitmap, int x, int y, int fromBitmapX, int fromBitmapY, int toBitmapX, int toBitmapY);
     void drawBitmapUsingPorterDuff(AbstractBitmap bitmap, int x, int y, PorterDuffMode mode);
+    void drawBitmapUsingPorterDuff(AbstractBitmap bitmap, int x, int y, int fromBitmapX, int fromBitmapY,
+                                          int toBitmapX, int toBitmapY, PorterDuffMode mode);
 
     AbstractBitmap obtainImage();
 
     void drawLine(int fromX, int fromY, int toX, int toY, int color);
 
     void floodFill(int x, int y, int color);
+
+    void setAntiAliasing(boolean enable);
 
 }

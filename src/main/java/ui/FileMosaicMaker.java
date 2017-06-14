@@ -37,18 +37,19 @@ public class FileMosaicMaker {
         System.out.println("Loaded " + tiles.size() + " tiles from " + analyzationFiles.size() + " analyzation files.");
         BitmapSource<String> source = new FileBitmapSource();
 
-        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
-        matcher.setTileReuseLimit(3);
+        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_USE_ALPHA, metric);
+        matcher.setTileReuseLimit(TileMatcher.REUSE_NONE);
 
         RandomMatcher<String> matcherRandom = new RandomMatcher<>(tiles);
         matcherRandom.setTileReuseLimit(TileMatcher.REUSE_NONE);
         matcherRandom.setRandom(new Random(45));
 
-        ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
+        ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, metric);
 
 
-        mMosaicMaker = new MosaicMaker<>(matcherRandom, source, DEFAULT_USE_ALPHA, DEFAULT_COLOR_METRIC);
-        mMosaicMaker.setCutResultToSourceAlpha(true);
+        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, metric);
+        //mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 
     public MosaicMaker<String> getMaker() {
