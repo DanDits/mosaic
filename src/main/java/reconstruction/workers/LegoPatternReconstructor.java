@@ -9,6 +9,7 @@ import data.image.AbstractBitmapFactory;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
 import data.mosaic.MosaicTile;
+import matching.workers.TrivialMatcher;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
@@ -40,21 +41,29 @@ public class LegoPatternReconstructor extends PatternReconstructor {
     public static final String NAME = "Lego";
     private static final String LEGO_PATH = "res/images/lego_blueprint.png";
     private final AbstractBitmap mLegoBitmap;
+    private final boolean usePalettes;
 
     public static class LegoParameters extends PatternParameters {
-
+        public boolean usePalettes;
         public LegoParameters(AbstractBitmap source) {
             super(source);
         }
 
         @Override
-        public Reconstructor makeReconstructor() throws IllegalParameterException {
+        public void resetToDefaults() {
+            super.resetToDefaults();
+            usePalettes = true;
+        }
+
+        @Override
+        public PatternReconstructor makeReconstructor() throws IllegalParameterException {
             return new LegoPatternReconstructor(this);
         }
     }
 
     public LegoPatternReconstructor(LegoParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         super(parameters);
+        usePalettes = parameters.usePalettes;
         mLegoBitmap = AbstractBitmapFactory.makeInstance(new File(LEGO_PATH)).createBitmap();
         if (mLegoBitmap == null) {
             System.err.println("Error loading lego bitmap!");
@@ -105,17 +114,21 @@ public class LegoPatternReconstructor extends PatternReconstructor {
 
     @Override
     public <S> TileMatcher<S> makeMatcher(boolean useAlpha, ColorMetric metric) {
-        List<MosaicTile<S>> tiles = new ArrayList<>();
-        for (int value : LEGO_COLOR_PALETTE_SOLID) {
-            tiles.add(new VoidTile<>(value));
+        if (usePalettes) {
+            List<MosaicTile<S>> tiles = new ArrayList<>();
+            for (int value : LEGO_COLOR_PALETTE_SOLID) {
+                tiles.add(new VoidTile<>(value));
+            }
+            for (int value : LEGO_COLOR_PALETTE_TRANSPARENT) {
+                tiles.add(new VoidTile<>(value));
+            }
+            for (int value : LEGO_COLOR_PALETTE_EFFECTS) {
+                tiles.add(new VoidTile<>(value));
+            }
+            return new SimpleLinearTileMatcher<>(tiles, useAlpha, metric);
+        } else {
+            return new TrivialMatcher<>();
         }
-        for (int value : LEGO_COLOR_PALETTE_TRANSPARENT) {
-            tiles.add(new VoidTile<>(value));
-        }
-        for (int value : LEGO_COLOR_PALETTE_EFFECTS) {
-            tiles.add(new VoidTile<>(value));
-        }
-        return new SimpleLinearTileMatcher<>(tiles, useAlpha, metric);
     }
 
     private static class VoidTile<S> implements MosaicTile<S> {

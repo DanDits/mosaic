@@ -24,7 +24,7 @@ public abstract class PatternReconstructor extends RectReconstructor {
             groundingColor = 0xFF000000;
         }
 
-        public abstract Reconstructor makeReconstructor() throws IllegalParameterException;
+        public abstract PatternReconstructor makeReconstructor() throws IllegalParameterException;
     }
 
     public PatternReconstructor(PatternParameters parameters) throws ReconstructionParameters.IllegalParameterException {

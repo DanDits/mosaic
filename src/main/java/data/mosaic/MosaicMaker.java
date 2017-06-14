@@ -164,6 +164,16 @@ public class MosaicMaker<S> {
         return params;
     }
 
+    public AbstractBitmap make(PatternReconstructor.PatternParameters parameters, ProgressCallback callback) throws ReconstructionParameters.IllegalParameterException {
+        if (parameters == null) {
+            throw new NullPointerException();
+        }
+        AbstractBitmap source = parameters.getBitmapSource();
+        PatternReconstructor reconstructor = parameters.makeReconstructor();
+        return finishMosaic(source, make(reconstructor.makeMatcher(usesAlpha(), getColorMetric()),
+                                         reconstructor.makeSource(), reconstructor, callback));
+    }
+
     public AbstractBitmap make(ReconstructionParameters parameters, ProgressCallback callback) throws ReconstructionParameters.IllegalParameterException {
         if (parameters == null) {
             throw new NullPointerException();

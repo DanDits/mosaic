@@ -27,7 +27,7 @@ public class CirclePatternReconstructor extends PatternReconstructor {
         }
 
         @Override
-        public Reconstructor makeReconstructor() throws IllegalParameterException {
+        public PatternReconstructor makeReconstructor() throws IllegalParameterException {
             return new CirclePatternReconstructor(this);
         }
     }

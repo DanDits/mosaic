@@ -5,6 +5,7 @@ import data.image.AbstractBitmapFactory;
 import data.mosaic.MosaicMaker;
 import data.mosaic.MosaicTile;
 import reconstruction.ReconstructionParameters;
+import reconstruction.pattern.PatternReconstructor;
 import reconstruction.workers.CirclePatternReconstructor;
 import reconstruction.workers.LegoPatternReconstructor;
 
@@ -125,6 +126,7 @@ public class SimpleConsole {
     private static AbstractBitmap makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, MosaicMaker.ProgressCallback progress) {
         FileMosaicMaker maker = new FileMosaicMaker(analyzationFiles);
         ReconstructionParameters parameters = null;
+        PatternReconstructor.PatternParameters patternParameters = null;
         AbstractBitmap result = null;
         switch (mosaicType) {
             case "rect":
@@ -140,10 +142,10 @@ public class SimpleConsole {
                 parameters = makeMosaicAutoLayer(typeParams, sourceFile, progress, maker);
                 break;
             case "circle":
-                parameters = makeMosaicCircle(typeParams, sourceFile, progress, maker);
+                patternParameters = makeMosaicCircle(typeParams, sourceFile, progress, maker);
                 break;
             case "lego":
-                parameters = makeMosaicLego(typeParams, sourceFile, progress, maker);
+                patternParameters = makeMosaicLego(typeParams, sourceFile, progress, maker);
                 break;
             case "puzzle":
                 parameters = makeMosaicPuzzle(typeParams, sourceFile, progress, maker);
@@ -160,6 +162,13 @@ public class SimpleConsole {
                 result = maker.getMaker().make(parameters, progress);
             } catch (ReconstructionParameters.IllegalParameterException e) {
                 System.err.println("Error creating mosaic:" + e);
+            }
+        }
+        if (patternParameters != null) {
+            try {
+                result = maker.getMaker().make(patternParameters, progress);
+            } catch (ReconstructionParameters.IllegalParameterException e) {
+                System.err.println("Error creating pattern mosaic:" + e);
             }
         }
         return result;
@@ -205,7 +214,7 @@ public class SimpleConsole {
     }
 
 
-    private static ReconstructionParameters makeMosaicCircle(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static PatternReconstructor.PatternParameters makeMosaicCircle(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -218,7 +227,7 @@ public class SimpleConsole {
         return maker.getMaker().makePatternParameters(source, CirclePatternReconstructor.NAME, rows, columns, progress);
     }
 
-    private static ReconstructionParameters makeMosaicLego(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static PatternReconstructor.PatternParameters makeMosaicLego(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -228,7 +237,9 @@ public class SimpleConsole {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
         AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        return maker.getMaker().makePatternParameters(source, LegoPatternReconstructor.NAME, rows, columns, progress);
+        LegoPatternReconstructor.LegoParameters params = (LegoPatternReconstructor.LegoParameters) maker.getMaker().makePatternParameters(source, LegoPatternReconstructor.NAME, rows, columns, progress);
+        params.usePalettes = false;
+        return params;
     }
 
     private static ReconstructionParameters makeMosaicRect(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {

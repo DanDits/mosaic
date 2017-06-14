@@ -10,6 +10,7 @@ import matching.workers.RandomMatcher;
 import matching.workers.ResolutionMatcher;
 import matching.workers.SimpleLinearTileMatcher;
 import matching.TileMatcher;
+import reconstruction.pattern.PatternReconstructor;
 import util.image.ColorMetric;
 
 import java.io.File;
@@ -43,12 +44,12 @@ public class FileMosaicMaker {
 
         RandomMatcher<String> matcherRandom = new RandomMatcher<>(tiles);
         matcherRandom.setTileReuseLimit(TileMatcher.REUSE_NONE);
-        matcherRandom.setRandom(new Random(45));
+        matcherRandom.setRandom(new Random(46));
 
         ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, metric);
 
 
-        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_USE_ALPHA, metric);
+        mMosaicMaker = new MosaicMaker<>(matcherRandom, source, DEFAULT_USE_ALPHA, metric);
         //mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 

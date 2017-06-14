@@ -340,9 +340,6 @@ public class PuzzleReconstructor extends Reconstructor {
         currentRow[currentX].draw(nextFragmentImage);
         advanceIndex();
         wantedFragment = null;
-        if (hasAll()) {
-            resultCanvas.drawBitmap(noseHorizontalLeft, 0, 0);
-        }
         return true;
     }
 

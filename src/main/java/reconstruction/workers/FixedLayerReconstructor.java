@@ -36,8 +36,8 @@ import util.image.ColorMetric;
  * Created by daniel on 03.07.15.
  */
 public class FixedLayerReconstructor extends Reconstructor {
-    private static final int MAX_RECALCULATIONS_BASE = 5;
-    private static final int MAX_RECALCULATIONS_LINEAR_GROWTH = 1;
+    private static final int MAX_RECALCULATIONS_BASE = 7;
+    private static final int MAX_RECALCULATIONS_LINEAR_GROWTH = 2;
     private final boolean mUseAlpha;
     private final ColorMetric mColorMetric;
     private MosaicFragment mFragment;
@@ -46,6 +46,10 @@ public class FixedLayerReconstructor extends Reconstructor {
     private AbstractBitmap[] mClusterBitmaps;
     private int[] mClusterColors;
     private int mCurrCluster;
+    private int[] mClusterBitmapOffsetX;
+    private int[] mClusterBitmapWidth;
+    private int[] mClusterBitmapOffsetY;
+    private int[] mClusterBitmapHeight;
 
     public static class FixedLayerParameters extends ReconstructionParameters {
         private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
@@ -202,12 +206,44 @@ public class FixedLayerReconstructor extends Reconstructor {
             progress.onProgressUpdate((int) (PercentProgressListener.PROGRESS_COMPLETE * redistributionCount / (double) maxRedistributions));
         } while (changed <= lastChanged && redistributionCount < maxRedistributions);
         mClusterColors = clusterCenters;
+        calculateClusterOffsets();
         progress.onProgressUpdate(PercentProgressListener.PROGRESS_COMPLETE);
+    }
+
+    private void calculateClusterOffsets() {
+        int clusterCount = mClusterBitmaps.length;
+        mClusterBitmapOffsetX = new int[clusterCount];
+        mClusterBitmapOffsetY = new int[clusterCount];
+        mClusterBitmapWidth = new int[clusterCount];
+        mClusterBitmapHeight = new int[clusterCount];
+        for (int i = 0; i < clusterCount; i++) {
+            calculateClusterOffset(i);
+        }
+    }
+
+    private void calculateClusterOffset(int cluster) {
+        int width = mResult.getWidth();
+        int minRow = Integer.MAX_VALUE, maxRow = -1;
+        int minCol = Integer.MAX_VALUE, maxCol = -1;
+        for (int i = 0; i < mPixelClusterNumber.length; i++) {
+            int x = i % width;
+            int y = i / width;
+            if (mPixelClusterNumber[i] == cluster) {
+                minRow = Math.min(minRow, y);
+                maxRow = Math.max(maxRow, y);
+                minCol = Math.min(minCol, x);
+                maxCol = Math.max(maxCol, x);
+            }
+        }
+        mClusterBitmapOffsetX[cluster] = minCol;
+        mClusterBitmapOffsetY[cluster] = minRow;
+        mClusterBitmapWidth[cluster] = maxCol - minCol + 1;
+        mClusterBitmapHeight[cluster] = maxRow - minRow + 1;
     }
 
     @Override
     public boolean giveNext(AbstractBitmap nextFragmentImage) {
-        if (nextFragmentImage == null || hasAll() || nextFragmentImage.getWidth() != mResult.getWidth() || nextFragmentImage.getHeight() != mResult.getHeight()) {
+        if (nextFragmentImage == null || hasAll() || nextFragmentImage.getWidth() != mFragment.getWidth() || nextFragmentImage.getHeight() != mFragment.getHeight()) {
             return false;
         }
         mClusterBitmaps[mCurrCluster] = nextFragmentImage;
@@ -220,7 +256,7 @@ public class FixedLayerReconstructor extends Reconstructor {
         if (hasAll()) {
             return null;
         }
-        mFragment.reset(mResult.getWidth(), mResult.getHeight(), mClusterColors[mCurrCluster]);
+        mFragment.reset(mClusterBitmapWidth[mCurrCluster], mClusterBitmapHeight[mCurrCluster], mClusterColors[mCurrCluster]);
         return mFragment;
     }
 
@@ -236,7 +272,9 @@ public class FixedLayerReconstructor extends Reconstructor {
             int x = i % width;
             int y = i / width;
             int cluster = mPixelClusterNumber[i];
-            mResult.setPixel(x, y, mClusterBitmaps[cluster].getPixel(x, y));
+            int bitmapColor = mClusterBitmaps[cluster].getPixel(x - mClusterBitmapOffsetX[cluster],
+                                                                y - mClusterBitmapOffsetY[cluster]);
+            mResult.setPixel(x, y, bitmapColor);
         }
         return mResult;
     }
