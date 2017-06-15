@@ -38,13 +38,9 @@ public class MosaicFragment {
 	 * @param averageRGB The average RGB.
 	 */
 	public MosaicFragment(int width, int height, int averageRGB) {
-		reset(width, height, averageRGB);
-	}
-
-	public void reset(int width, int height, int averageRGB) {
 		this.width = width;
 		this.height = height;
-        this.averageRGB = averageRGB;
+		this.averageRGB = averageRGB;
 	}
 
 	/**

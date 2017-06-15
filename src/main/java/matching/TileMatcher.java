@@ -57,8 +57,15 @@ public abstract class TileMatcher<S> {
         mMatchesCache.clearCache(Cachable.CLEAR_EMPTY);
     }
 
+    protected boolean cacheEnabled() {
+		return true;
+	}
+
     private Optional<? extends MosaicTile<S>> getBestMatchHashed(MosaicFragment wantedFragment) {
-        return mMatchesCache.getFromCache(wantedFragment, this::calculateBestMatch);
+		if (cacheEnabled()) {
+			return mMatchesCache.getFromCache(wantedFragment, this::calculateBestMatch);
+		}
+		return calculateBestMatch(wantedFragment);
     }
 
     public void setTileReuseLimit(int limit) {
@@ -92,6 +99,9 @@ public abstract class TileMatcher<S> {
 		do {
 			canUseResult = true;
 			result = getBestMatchHashed(wantedFragment);
+			if (result.isPresent() && wantedFragment.getAverageRGB() != result.get().getAverageARGB()) {
+				System.err.println("Fragment rgb=" + wantedFragment.getAverageRGB() + " result=" + result.get().getAverageARGB());
+			}
 			if (result.isPresent() && reuseLimit >= 0) {
 				int currentReuseCount = reuseCount.getOrDefault(result.get().getSource(), -1);
 				reuseCount.put(result.get().getSource(), currentReuseCount + 1);

@@ -170,7 +170,7 @@ public class MosaicMaker<S> {
         }
         AbstractBitmap source = parameters.getBitmapSource();
         PatternReconstructor reconstructor = parameters.makeReconstructor();
-        return finishMosaic(source, make(reconstructor.makeMatcher(usesAlpha(), getColorMetric()),
+        return finishMosaic(source, make(reconstructor.makeMatcher(usesAlpha(), parameters.getColorMetric(getColorMetric())),
                                          reconstructor.makeSource(), reconstructor, callback));
     }
 

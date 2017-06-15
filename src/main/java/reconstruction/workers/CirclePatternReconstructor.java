@@ -30,6 +30,11 @@ public class CirclePatternReconstructor extends PatternReconstructor {
         public PatternReconstructor makeReconstructor() throws IllegalParameterException {
             return new CirclePatternReconstructor(this);
         }
+
+        @Override
+        public ColorMetric getColorMetric(ColorMetric colorMetric) {
+            return ColorMetric.Brightness.INSTANCE;
+        }
     }
 
     public static class Source<S> extends PatternSource<S> {
@@ -38,11 +43,9 @@ public class CirclePatternReconstructor extends PatternReconstructor {
 
         @Override
         protected AbstractBitmap makePattern(int color, AbstractBitmap base) {
-            AbstractCanvas canvas = mCanvas;
-            canvas.clear();
-            canvas.drawCircle(base.getWidth() / 2, base.getHeight() / 2,
+            mCanvas.drawCircle(base.getWidth() / 2, base.getHeight() / 2,
                     Math.min(base.getWidth() / 2, base.getHeight() / 2), color);
-            return base;
+            return mPatternBitmap;
         }
 
         protected AbstractBitmap obtainBitmap(int key, int width, int height) {
@@ -73,10 +76,7 @@ public class CirclePatternReconstructor extends PatternReconstructor {
     protected int evaluateRectValue(AbstractBitmap source, int startX, int endX, int startY, int endY) {
         ensureAverageBrightness(source);
         fillRaster(source, startX, endX, startY, endY);
-        int width = endX - startX;
-        int height = endY - startY;
-        return calculateColor(mRaster, mAverageBrightness, width, height,
-                0, 0, Math.max(width, height) + 1);
+        return calculateColor(mRaster, mAverageBrightness);
     }
 
     private void fillRaster(AbstractBitmap source, int startX, int endX, int startY, int endY) {
@@ -109,31 +109,18 @@ public class CirclePatternReconstructor extends PatternReconstructor {
         // positive and brightness not calculated over and over if it would be exactly zero
     }
 
-    public static int calculateColor(double[] raster, double averageBrightness,
-                                     int bitmapWidth, int bitmapHeight,
-                                     float x, float y, float r) {
-        // by default this calculates the average brightness of the area [x-r,x+r][y-r,y+r]
-        int left = (int)(x - r);
-        int right = (int)(x + r);
-        int top = (int)(y - r);
-        int bottom = (int)(y + r);
+    private static int calculateColor(double[] raster, double averageBrightness) {
         double brightness = 0;
-        double consideredPoints = 0;
+        double consideredPoints = raster.length;
         // do not only consider pixels within the circle but within the square defined by the circle bounds
-        for (int i = Math.max(0, left); i <= Math.min(right, bitmapWidth - 1); i++) {
-            for (int j = Math.max(0, top); j <= Math.min(bottom, bitmapHeight - 1); j++) {
-                int rasterIndex = j * bitmapWidth + i;
-                if (rasterIndex >= 0 && rasterIndex < raster.length) {
-                    brightness += raster[rasterIndex];
-                    consideredPoints++;
-                }
-            }
+        for (double aRaster : raster) {
+            brightness += aRaster;
         }
         // 1 = very bright -> white
         brightness /= consideredPoints;
         // logistic filter 1/(1+e^(-kx)) to minimize grey values and emphasize bright and dark ones
         // use higher k for less grey values
-        brightness = 1. / (1. + Math.exp(-15. * (brightness - averageBrightness)));
+        brightness = 1. / (1. + Math.exp(-5. * (brightness - averageBrightness)));
         int grey = (int) (255. * brightness);
         return ColorAnalysisUtil.toRGB(grey, grey, grey, 255);
     }

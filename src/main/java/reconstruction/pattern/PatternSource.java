@@ -6,6 +6,7 @@ import data.image.AbstractBitmapFactory;
 import data.image.BitmapSource;
 import data.mosaic.MosaicTile;
 import util.caching.LruCache;
+import util.image.ColorAnalysisUtil;
 
 /**
  * Created by daniel on 05.12.15.

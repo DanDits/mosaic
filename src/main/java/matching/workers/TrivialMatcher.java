@@ -21,6 +21,11 @@ public class TrivialMatcher<S> extends TileMatcher<S> {
         mOptionalTile = Optional.of(mTile);
     }
 
+    @Override
+    protected boolean cacheEnabled() {
+        return false; // not needed
+    }
+
     private class NullTile implements MosaicTile<S> {
         private int mAverageColor;
         private int width;

@@ -25,6 +25,8 @@ public abstract class PatternReconstructor extends RectReconstructor {
         }
 
         public abstract PatternReconstructor makeReconstructor() throws IllegalParameterException;
+
+        public abstract ColorMetric getColorMetric(ColorMetric colorMetric);
     }
 
     public PatternReconstructor(PatternParameters parameters) throws ReconstructionParameters.IllegalParameterException {

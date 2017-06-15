@@ -99,7 +99,6 @@ public class FixedLayerReconstructor extends Reconstructor {
         }
         final int width = source.getWidth();
         final int height = source.getHeight();
-        mFragment = new MosaicFragment(0, 0, 0);
         mResult = obtainBaseBitmap(width, height);
         mClusterBitmaps = new AbstractBitmap[clusterCount];
         int[] pixelColors = new int[width * height];
@@ -256,7 +255,7 @@ public class FixedLayerReconstructor extends Reconstructor {
         if (hasAll()) {
             return null;
         }
-        mFragment.reset(mClusterBitmapWidth[mCurrCluster], mClusterBitmapHeight[mCurrCluster], mClusterColors[mCurrCluster]);
+        mFragment = new MosaicFragment(mClusterBitmapWidth[mCurrCluster], mClusterBitmapHeight[mCurrCluster], mClusterColors[mCurrCluster]);
         return mFragment;
     }
 

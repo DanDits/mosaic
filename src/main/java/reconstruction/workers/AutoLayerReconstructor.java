@@ -94,7 +94,6 @@ public class AutoLayerReconstructor extends Reconstructor {
         long tic = System.currentTimeMillis();
         final int width = source.getWidth();
         final int height = source.getHeight();
-        mFragment = new MosaicFragment(0, 0, 0);
         mResult = obtainBaseBitmap(width, height);
         final int[] colors = new int[width * height];
         final int[] deltas = new int[width * height];
@@ -193,7 +192,7 @@ public class AutoLayerReconstructor extends Reconstructor {
         }
         if (mNext == null) {
             int currColor = mColorIterator.next();
-            mFragment.reset(mResult.getWidth(), mResult.getHeight(), currColor);
+            mFragment = new MosaicFragment(mResult.getWidth(), mResult.getHeight(), currColor);
             mNext = mFragment;
         }
         return mNext;

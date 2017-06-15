@@ -59,6 +59,11 @@ public class LegoPatternReconstructor extends PatternReconstructor {
         public PatternReconstructor makeReconstructor() throws IllegalParameterException {
             return new LegoPatternReconstructor(this);
         }
+
+        @Override
+        public ColorMetric getColorMetric(ColorMetric colorMetric) {
+            return colorMetric;
+        }
     }
 
     public LegoPatternReconstructor(LegoParameters parameters) throws ReconstructionParameters.IllegalParameterException {
