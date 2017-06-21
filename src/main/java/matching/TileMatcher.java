@@ -99,9 +99,6 @@ public abstract class TileMatcher<S> {
 		do {
 			canUseResult = true;
 			result = getBestMatchHashed(wantedFragment);
-			if (result.isPresent() && wantedFragment.getAverageRGB() != result.get().getAverageARGB()) {
-				System.err.println("Fragment rgb=" + wantedFragment.getAverageRGB() + " result=" + result.get().getAverageARGB());
-			}
 			if (result.isPresent() && reuseLimit >= 0) {
 				int currentReuseCount = reuseCount.getOrDefault(result.get().getSource(), -1);
 				reuseCount.put(result.get().getSource(), currentReuseCount + 1);

@@ -14,9 +14,6 @@ import java.util.Optional;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by dd on 07.06.17.
- */
 public class SimpleLinearTileMatcherTest {
 
     private List<MosaicTile<String>> tiles;

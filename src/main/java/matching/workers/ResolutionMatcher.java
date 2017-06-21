@@ -2,6 +2,7 @@ package matching.workers;
 
 import data.mosaic.MosaicTile;
 import matching.TileMatcher;
+import org.pmw.tinylog.Logger;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
 
@@ -31,16 +32,17 @@ public class ResolutionMatcher<S> extends TileMatcher<S> {
             useTiles = tiles.stream()
                     .filter(tile -> getResolutionDifference(tile, wantedFraction) <= allowedDifference)
                     .collect(Collectors.toList());
-            System.out.println("Allowed difference=" + allowedDifference);
         }
         if (useTiles.size() == 0 && wantedTile.getWidth() > 0 && wantedTile.getHeight() > 0) {
             final double wantedFraction = wantedTile.getWidth() / (double) wantedTile.getHeight();
-            System.out.println("Dropped every tile when using accuracy " + accuracy + " for resolution " + wantedTile.getWidth() + "x" + wantedTile.getHeight() + " now searching for best fit.");
+            Logger.trace("ResolutionMatcher dropped every tile when using accuracy {} for resolution {}x{}, now searching for best fit.",
+                        accuracy, wantedTile.getWidth(), wantedTile.getHeight());
             // panic, we want to get something at least
             return tiles.stream()
                     .min(Comparator.comparingDouble(tile -> getResolutionDifference(tile, wantedFraction)));
         }
-        System.out.println("Got " + useTiles.size() + " tiles with fitting resolution: " + wantedTile.getWidth() + "x" + wantedTile.getHeight());
+        Logger.trace("ResolutionMatcher with accuracy {} got {}/{} tile(s) with fitting resolution {}x{}",
+                     accuracy, useTiles.size(), tiles.size(), wantedTile.getWidth(), wantedTile.getHeight());
         return useTiles.stream().min(Comparator.comparingDouble(
                 tile -> mColorMetric.getDistance(tile.getAverageARGB(), wantedTile.getAverageRGB(), useAlpha)));
     }
@@ -48,7 +50,7 @@ public class ResolutionMatcher<S> extends TileMatcher<S> {
     private static double accuracyToAllowedDifference(double accuracy) {
         // constraints: infinity for accuracy=0, zero for accuracy=1, monotonous and continuous in between
         //return (1. / accuracy - 1) / 10. + 1E-7;
-        return -Math.log(accuracy);
+        return -0.1 * Math.log(accuracy);
     }
 
     private double getResolutionDifference(MosaicTile<S> tile, double wantedFraction) {

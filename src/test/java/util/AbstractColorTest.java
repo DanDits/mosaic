@@ -4,9 +4,7 @@ import data.image.AbstractColor;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by dd on 03.06.17.
- */
+
 public class AbstractColorTest {
 
     @Test
