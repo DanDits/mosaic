@@ -35,6 +35,20 @@ public class ResolutionMatcherTest {
         return new MosaicFragment(width, height, DEFAULT_WANTED_COLOR);
     }
 
+
+    @Test
+    public void testRemoveTile() {
+        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, 1., true, metric);
+        Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(100, 148));
+        assertTrue(bestMatch.isPresent());
+
+        assertEquals(6, matcher.getUsedTilesCount());
+        assertTrue(matcher.removeTile(bestMatch.get()));
+        assertEquals(5, matcher.getUsedTilesCount());
+        assertEquals(6, tiles.size());
+    }
+
     @Test
     public void testEmptyMatch() {
         ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
@@ -50,6 +64,7 @@ public class ResolutionMatcherTest {
         assertFalse(matcher.usesAlpha());
         matcher.setUseAlpha(true);
         assertFalse(matcher.getBestMatch(getFragmentForResolution(2, 3)).isPresent());
+        assertTrue(matcher.cacheEnabled());
     }
 
     @Test

@@ -45,6 +45,19 @@ public class SimpleLinearTileMatcherTest {
         assertFalse(matcher.usesAlpha());
         matcher.setUseAlpha(true);
         assertFalse(matcher.getBestMatch(getFragmentForColor(0xFFFF0000)).isPresent());
+        assertTrue(matcher.cacheEnabled());
+    }
+
+    @Test
+    public void testRemoveTile() {
+        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, true, metric);
+        Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF0000));
+        assertTrue(bestMatch.isPresent());
+        assertEquals(5, matcher.getUsedTilesCount());
+        assertTrue(matcher.removeTile(bestMatch.get()));
+        assertEquals(4, matcher.getUsedTilesCount());
+        assertEquals(5, tiles.size());
     }
 
     @Test
