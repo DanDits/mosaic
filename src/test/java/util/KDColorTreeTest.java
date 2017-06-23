@@ -27,7 +27,7 @@ public class KDColorTreeTest {
     @Before
     public void init() {
         tiles = new ArrayList<>();
-        amount = 1000;
+        amount = 10000;
         Random rnd = new Random(1337);
         for (int i = 0; i < amount - 3; i++) {
             tiles.add(new MockTile("S" + i,
@@ -75,11 +75,25 @@ public class KDColorTreeTest {
     }
 
     @Test
+    public void manyQueries() {
+        int delta = 2;
+        for (int red = 0; red <= 255; red += delta) {
+            for (int green = 0; green <= 255; green += delta) {
+                for (int blue = 0; blue <= 255; blue += delta) {
+                    int color = AbstractColor.rgb(red, green, blue);
+                    Optional<MosaicTile<String>> tile = tree.getNearestNeighbor(color);
+                    assertTrue(tile.isPresent());
+                }
+            }
+        }
+    }
+
+    @Test
     public void testCompareWithLinearMatcher() {
         ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
         SimpleLinearTileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles,
                                                                         false, metric);
-        int delta = 5; // will take about 25 seconds for delta=2 as linear matcher is slow
+        int delta = 10; // will take about 25 seconds for delta=2 as linear matcher is slow
         for (int red = 0; red <= 255; red += delta) {
             for (int green = 0; green <= 255; green += delta) {
                 for (int blue = 0; blue <= 255; blue += delta) {

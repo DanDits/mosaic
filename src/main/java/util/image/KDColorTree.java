@@ -56,7 +56,7 @@ public class KDColorTree<D> implements Iterable<KDColorTree.Node<D>> {
     public Optional<D> getNearestNeighbor(int targetColor) {
         Optional<Node<D>> bestOpt = findNode(root, targetColor, Node::isLeaf);
         Node<D> best = null;
-        int bestDist = Integer.MAX_VALUE;
+        int bestDist;
         if (!bestOpt.isPresent()) {
             return Optional.empty();
         }
@@ -70,43 +70,43 @@ public class KDColorTree<D> implements Iterable<KDColorTree.Node<D>> {
         int axis;
         Node<D> current;
         int currentDist;
-        Queue<Node<D>> nextNodes = new LinkedList<>();
-        Queue<Integer> nextAxis = new LinkedList<>();
-        nextNodes.add(root);
-        nextAxis.add(0);
+        Stack<Node<D>> nextNodes = new Stack<>();
+        Stack<Integer> nextAxis = new Stack<>();
+        appendSearchNode(nextNodes, nextAxis, root, 0);
         do {
-            current = nextNodes.poll();
-            axis = nextAxis.poll();
+            current = nextNodes.pop();
+            axis = nextAxis.pop();
             currentDist = colorDistance(current.color, targetColor);
             if (currentDist < bestDist) {
                 best = current;
                 bestDist = currentDist;
             }
             int currentComponentDist = colorComponentDistance(targetColor, current.color, axis);
-            boolean addLeft = false, addRight = false;
+            boolean addLeft = true, addRight = true; // by default assume that it overlaps both parts
             if (bestDist < currentComponentDist) {
                 // completely on one side of the tree, other can be forgotten
                 if (getValueByAxis(targetColor, axis) < getValueByAxis(current.color, axis)) {
                     // its in the left part, the right part can be discarded
-                    addLeft = true;
+                    addRight = false;
                 } else {
-                    addRight = true;
+                    addLeft = false;
                 }
-            } else {
-                // overlaps both parts
-                addLeft = addRight = true;
             }
             if (addLeft && current.leftChild != null) {
-                nextNodes.add(current.leftChild);
-                nextAxis.add((axis + 1) % dimension);
+                appendSearchNode(nextNodes, nextAxis, current.leftChild, (axis + 1) % dimension);
             }
             if (addRight && current.rightChild != null) {
-                nextNodes.add(current.rightChild);
-                nextAxis.add((axis + 1) % dimension);
+                appendSearchNode(nextNodes, nextAxis, current.rightChild, (axis + 1) % dimension);
             }
         } while (!nextNodes.isEmpty());
 
         return Optional.of(best.data);
+    }
+
+    private static <D> void appendSearchNode(Stack<Node<D>> nextNodes, Stack<Integer> nextAxis,
+                                             Node<D> next, int axis) {
+        nextNodes.push(next);
+        nextAxis.push(axis);
     }
 
     private Optional<Node<D>> findNode(Node<D> startNode, int targetColor, Predicate<Node<D>> stopCondition) {
