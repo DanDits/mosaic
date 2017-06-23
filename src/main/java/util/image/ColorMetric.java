@@ -26,19 +26,26 @@ import java.util.List;
  */
 public abstract class ColorMetric {
 
+    protected abstract double getDistance(int color1, int color2, int axis);
     public abstract double getDistance(int color1, int color2, boolean useAlpha);
     public abstract double maxValue(boolean useAlpha);
 
     public static List<ColorMetric> makeAll() {
-        List<ColorMetric> list = new ArrayList<>(5);
+        List<ColorMetric> list = new ArrayList<>(8);
         list.add(Euclid2.INSTANCE);
         list.add(Absolute.INSTANCE);
         list.add(Greyness.INSTANCE);
         list.add(AbsoluteRed.INSTANCE);
         list.add(AbsoluteGreen.INSTANCE);
         list.add(AbsoluteBlue.INSTANCE);
-        list.add(Brightness.INSTANCE);
+        list.add(BrightnessWithAlpha.INSTANCE);
+        list.add(BrightnessNoAlpha.INSTANCE);
         return list;
+    }
+
+    @FunctionalInterface
+    private interface IntToIntFunction {
+        int apply(int param);
     }
 
     public static class Euclid2 extends ColorMetric {	/**
@@ -54,28 +61,22 @@ public abstract class ColorMetric {
         public static final Euclid2 INSTANCE = new Euclid2();
         private Euclid2() {}
 
+
+        private static final IntToIntFunction[] AXIS_EXTRACTORS = new IntToIntFunction[] {AbstractColor::red,
+                AbstractColor::green, AbstractColor::blue, AbstractColor::alpha};
+
+        @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            int diff = AXIS_EXTRACTORS[axis].apply(color1) - AXIS_EXTRACTORS[axis].apply(color2);
+            return diff * diff;
+        }
+
         @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
+            int axisCount = useAlpha ? 4 : 3;
             int result = 0;
-            int currColValue1;
-            int currColValue2;
-
-            currColValue1 = AbstractColor.red(color1);
-            currColValue2 = AbstractColor.red(color2);
-            result += (currColValue1 - currColValue2) * (currColValue1 - currColValue2);
-
-            currColValue1 = AbstractColor.green(color1);
-            currColValue2 = AbstractColor.green(color2);
-            result += (currColValue1 - currColValue2) * (currColValue1 - currColValue2);
-
-            currColValue1 = AbstractColor.blue(color1);
-            currColValue2 = AbstractColor.blue(color2);
-            result += (currColValue1 - currColValue2) * (currColValue1 - currColValue2);
-
-            if (useAlpha) {
-                currColValue1 = AbstractColor.alpha(color1);
-                currColValue2 = AbstractColor.alpha(color2);
-                result += (currColValue1 - currColValue2) * (currColValue1 - currColValue2);
+            for (int i = 0; i < axisCount; i++) {
+                result += getDistance(color1, color2, i);
             }
             return result;
         }
@@ -95,12 +96,23 @@ public abstract class ColorMetric {
         private static final double GREATEST_VALUE_NO_ALPHA = 3 * 255;
         private static final double GREATEST_VALUE_ALPHA = 4 * 255;
         private Absolute() {}
+
+        private static final IntToIntFunction[] AXIS_EXTRACTORS = new IntToIntFunction[] {AbstractColor::red,
+                AbstractColor::green, AbstractColor::blue, AbstractColor::alpha};
+
+        @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            return Math.abs(AXIS_EXTRACTORS[axis].apply(color1) - AXIS_EXTRACTORS[axis].apply(color2));
+        }
+
         @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
-            return Math.abs(AbstractColor.red(color1) - AbstractColor.red(color2))
-                    + Math.abs(AbstractColor.green(color1) - AbstractColor.green(color2))
-                    + Math.abs(AbstractColor.blue(color1) - AbstractColor.blue(color2))
-                    + (useAlpha ? Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2)) : 0);
+            int axisCount = useAlpha ? 4 : 3;
+            int result = 0;
+            for (int i = 0; i < axisCount; i++) {
+                result += getDistance(color1, color2, i);
+            }
+            return result;
 
         }
 
@@ -117,10 +129,16 @@ public abstract class ColorMetric {
     public static class Greyness extends ColorMetric {
         public static final Greyness INSTANCE = new Greyness();
         private Greyness() {}
+
+        @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            return Math.abs(ColorAnalysisUtil.getGreyness(AbstractColor.red(color1), AbstractColor.green(color1), AbstractColor.blue(color1))
+                                    - ColorAnalysisUtil.getGreyness(AbstractColor.red(color2), AbstractColor.green(color2), AbstractColor.blue(color2)));
+        }
+
         @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
-            return Math.abs(ColorAnalysisUtil.getGreyness(AbstractColor.red(color1), AbstractColor.green(color1), AbstractColor.blue(color1))
-                    - ColorAnalysisUtil.getGreyness(AbstractColor.red(color2), AbstractColor.green(color2), AbstractColor.blue(color2)));
+            return getDistance(color1, color2, 0);
         }
 
         @Override
@@ -136,10 +154,18 @@ public abstract class ColorMetric {
     public static class AbsoluteRed extends ColorMetric {
         public static final AbsoluteRed INSTANCE = new AbsoluteRed();
         private AbsoluteRed() {}
+
+        @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            if (axis == 0) {
+                return Math.abs(AbstractColor.red(color1) - AbstractColor.red(color2));
+            }
+            return  Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2));
+        }
+
         @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
-            return Math.abs(AbstractColor.red(color1) - AbstractColor.red(color2))
-                    + (useAlpha ? Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2)) : 0);
+            return getDistance(color1, color2, 0) + (useAlpha ? getDistance(color1, color2, 1): 0);
         }
 
         @Override
@@ -158,9 +184,16 @@ public abstract class ColorMetric {
         public static final AbsoluteGreen INSTANCE = new AbsoluteGreen();
         private AbsoluteGreen() {}
         @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            if (axis == 0) {
+                return Math.abs(AbstractColor.green(color1) - AbstractColor.green(color2));
+            }
+            return  Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2));
+        }
+
+        @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
-            return Math.abs(AbstractColor.green(color1) - AbstractColor.green(color2))
-                    + (useAlpha ? Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2)) : 0);
+            return getDistance(color1, color2, 0) + (useAlpha ? getDistance(color1, color2, 1): 0);
         }
 
         @Override
@@ -178,9 +211,16 @@ public abstract class ColorMetric {
         public static final AbsoluteBlue INSTANCE = new AbsoluteBlue();
         private AbsoluteBlue() {}
         @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            if (axis == 0) {
+                return Math.abs(AbstractColor.blue(color1) - AbstractColor.blue(color2));
+            }
+            return  Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2));
+        }
+
+        @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
-            return Math.abs(AbstractColor.blue(color1) - AbstractColor.blue(color2))
-                    + (useAlpha ? Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2)) : 0);
+            return getDistance(color1, color2, 0) + (useAlpha ? getDistance(color1, color2, 1): 0);
         }
 
         @Override
@@ -194,16 +234,18 @@ public abstract class ColorMetric {
         }
     }
 
-    public static class Brightness extends  ColorMetric {
-        public static final Brightness INSTANCE = new Brightness();
-        private Brightness() {}
+    public static class BrightnessWithAlpha extends  ColorMetric {
+        public static final BrightnessWithAlpha INSTANCE = new BrightnessWithAlpha();
+        private BrightnessWithAlpha() {}
+
+        @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            return  Math.abs(ColorAnalysisUtil.getBrightnessWithAlpha(color1) - ColorAnalysisUtil.getBrightnessWithAlpha(color2));
+        }
+
         @Override
         public double getDistance(int color1, int color2, boolean useAlpha) {
-            if (useAlpha) {
-                return Math.abs(ColorAnalysisUtil.getBrightnessNoAlpha(color1) - ColorAnalysisUtil.getBrightnessNoAlpha(color2));
-            } else {
-                return Math.abs(ColorAnalysisUtil.getBrightnessWithAlpha(color1) - ColorAnalysisUtil.getBrightnessWithAlpha(color2));
-            }
+            return getDistance(color1, color2, 0);
         }
 
         @Override
@@ -213,7 +255,33 @@ public abstract class ColorMetric {
 
         @Override
         public String toString() {
-            return "Brightness";
+            return "BrightnessWithAlpha";
         }
     }
+
+    public static class BrightnessNoAlpha extends  ColorMetric {
+        public static final BrightnessNoAlpha INSTANCE = new BrightnessNoAlpha();
+        private BrightnessNoAlpha() {}
+
+        @Override
+        protected double getDistance(int color1, int color2, int axis) {
+            return Math.abs(ColorAnalysisUtil.getBrightnessNoAlpha(color1) - ColorAnalysisUtil.getBrightnessNoAlpha(color2));
+        }
+
+        @Override
+        public double getDistance(int color1, int color2, boolean useAlpha) {
+            return getDistance(color1, color2, 0);
+        }
+
+        @Override
+        public double maxValue(boolean useAlpha) {
+            return 1.0;
+        }
+
+        @Override
+        public String toString() {
+            return "BrightnessWithoutAlpha";
+        }
+    }
+
 }

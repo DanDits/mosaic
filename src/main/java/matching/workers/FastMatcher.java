@@ -4,6 +4,7 @@ import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
+import util.image.ColorSpace;
 import util.image.KDColorTree;
 
 import java.util.*;
@@ -22,20 +23,22 @@ public class FastMatcher<S> extends TileMatcher<S> {
 
     private KDColorTree<MosaicTile<S>> tree;
     private final List<MosaicTile<S>> tiles;
+    private ColorSpace space;
 
-    protected FastMatcher(Collection<? extends MosaicTile<S>> tiles, boolean useAlpha) {
-        super(useAlpha, ColorMetric.Euclid2.INSTANCE);
+    protected FastMatcher(Collection<? extends MosaicTile<S>> tiles, ColorSpace space) {
+        super(space.usesAlpha(), space.getMetric());
         this.tiles = new ArrayList<>(tiles);
+        this.space = space;
         initTree();
     }
 
     private void initTree() {
-        tree = KDColorTree.make(new Random(), tiles, MosaicTile::getAverageARGB, useAlpha);
+        tree = KDColorTree.make(new Random(), tiles, space);
     }
 
     @Override
     public void setColorMetric(ColorMetric metric) {
-        // ignore
+        throw new UnsupportedOperationException("Metric cannot be changed for FastMatcher.");
     }
 
     @Override
@@ -64,7 +67,7 @@ public class FastMatcher<S> extends TileMatcher<S> {
 
     @Override
     public boolean removeTile(MosaicTile<S> toRemove) {
-        return tree.removeNode(toRemove.getAverageARGB(), toRemove);
+        return tree.removeNode(toRemove);
     }
 
     @Override

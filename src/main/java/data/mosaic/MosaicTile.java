@@ -17,6 +17,7 @@ package data.mosaic;
 
 
 import data.image.ImageResolution;
+import util.image.Colorized;
 
 /**
  * This interface is a reference of anything than can be used to reconstruct a mosaic and serve as a MosaicFragment.
@@ -24,8 +25,12 @@ import data.image.ImageResolution;
  * @author Daniel
  *
  */
-public interface MosaicTile<S> {
+public interface MosaicTile<S> extends Colorized {
 
+	@Override
+	default int getColor() {
+		return getAverageARGB();
+	}
 	
 	/**
 	 * Returns the source. This is anything that can reference

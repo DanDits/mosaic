@@ -17,6 +17,7 @@ package reconstruction;
 
 
 import util.image.ColorAnalysisUtil;
+import util.image.Colorized;
 
 /**
  * This class models an immutable Fragment of a mosaic image
@@ -25,7 +26,7 @@ import util.image.ColorAnalysisUtil;
  * @author Daniel
  *
  */
-public class MosaicFragment {
+public class MosaicFragment implements Colorized {
 	private int width;
 	private int height;
 	private int averageRGB;
@@ -93,5 +94,10 @@ public class MosaicFragment {
 		result = 31 * result + height;
 		result = 31 * result + averageRGB;
 		return result;
+	}
+
+	@Override
+	public int getColor() {
+		return getAverageRGB();
 	}
 }

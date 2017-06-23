@@ -4,7 +4,6 @@ import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
 import reconstruction.ReconstructionParameters;
-import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
 import util.image.ColorAnalysisUtil;
@@ -33,7 +32,7 @@ public class CirclePatternReconstructor extends PatternReconstructor {
 
         @Override
         public ColorMetric getColorMetric(ColorMetric colorMetric) {
-            return ColorMetric.Brightness.INSTANCE;
+            return ColorMetric.BrightnessWithAlpha.INSTANCE;
         }
     }
 

@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import reconstruction.MosaicFragment;
 import util.image.ColorMetric;
+import util.image.ColorSpace;
 import util.image.KDColorTree;
 
 import java.util.*;
@@ -23,9 +24,11 @@ public class KDColorTreeTest {
     private KDColorTree<MosaicTile<String>> tree;
     private ArrayList<MosaicTile<String>> tiles;
     private int amount;
+    private ColorSpace space;
 
     @Before
     public void init() {
+        space = ColorSpace.Brightness.INSTANCE_WITH_ALPHA;
         tiles = new ArrayList<>();
         amount = 10000;
         Random rnd = new Random(1337);
@@ -38,7 +41,7 @@ public class KDColorTreeTest {
         tiles.add(new MockTile("D2", 0xFFAAAA11, 5, 5));
         tiles.add(new MockTile("D3", 0xFFAAAA55, 5, 5));
         rnd = new Random(1337);
-        tree = KDColorTree.make(rnd, tiles, MosaicTile::getAverageARGB, false);
+        tree = KDColorTree.make(rnd, tiles, space);
     }
 
     @Test
@@ -58,7 +61,7 @@ public class KDColorTreeTest {
     @Test
     public void testRemoveElements() {
         for (MosaicTile<String> tile : tiles) {
-            assertTrue(tree.removeNode(tile.getAverageARGB(), tile));
+            assertTrue(tree.removeNode(tile));
         }
     }
 
@@ -69,7 +72,7 @@ public class KDColorTreeTest {
             dataOpt = tree.getNearestNeighbor(tile.getAverageARGB());
             assertTrue(dataOpt.isPresent());
             boolean sourceEqual = tile.getSource().equals(dataOpt.get().getSource());
-            boolean colorEqual = tile.getAverageARGB() == dataOpt.get().getAverageARGB();
+            boolean colorEqual = space.getDistance(tile.getAverageARGB(), dataOpt.get().getAverageARGB()) < 1E-10;
             assertTrue(sourceEqual || colorEqual);
         }
     }
@@ -90,9 +93,9 @@ public class KDColorTreeTest {
 
     @Test
     public void testCompareWithLinearMatcher() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
+        ColorMetric metric = space.getMetric();
         SimpleLinearTileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles,
-                                                                        false, metric);
+                                                                                false, metric);
         int delta = 10; // will take about 25 seconds for delta=2 as linear matcher is slow
         for (int red = 0; red <= 255; red += delta) {
             for (int green = 0; green <= 255; green += delta) {
