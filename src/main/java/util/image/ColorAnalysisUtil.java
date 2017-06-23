@@ -172,7 +172,21 @@ public final class ColorAnalysisUtil {
 		return AbstractColor.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
 	}
 
-	@FunctionalInterface
+	public static String visualizeRGBDecimal(int argb, boolean useAlpha) {
+		StringBuilder builder = new StringBuilder(15);
+		if (useAlpha) {
+			builder.append(AbstractColor.alpha(argb));
+			builder.append(',');
+		}
+		builder.append(AbstractColor.red(argb))
+				.append(',')
+			   .append(AbstractColor.green(argb))
+			   .append(',')
+			   .append(AbstractColor.blue(argb));
+		return builder.toString();
+	}
+
+    @FunctionalInterface
 	public interface ColoredCoordinates {
 		int getColorOfCoordinates(int x, int y);
 	}

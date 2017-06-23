@@ -4,6 +4,7 @@ import data.image.AbstractColor;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -16,19 +17,138 @@ public class KDColorTree<D> implements Iterable<KDColorTree.Node<D>> {
     private static final double MEDIAN_ESTIMATION_SAMPLE_FRACTION = 0.01;
 
     private Node<D> root;
+    private int dimension;
+    private int size;
 
-    private KDColorTree(Node<D> root) {
+    private KDColorTree(Node<D> root, int size, int dimension) {
         this.root = root;
+        this.size = size;
+        this.dimension = dimension;
+    }
+
+    public boolean removeNode(int color, D data) {
+        Optional<Node<D>> node = getExistingNode(color, data);
+        if (node.isPresent()) {
+            // removing a node from the graph can be costly, if the node is the root then (approximately) half
+            // of the nodes have to be visited to look for a replacement
+            node.get().remove(dimension);
+            size--;
+            if (node.get() == root && size == 0) {
+                root = null;
+            }
+        }
+        return node.isPresent();
+    }
+
+    private int colorDistance(int color1, int color2) {
+        int sum = 0;
+        for (int i = 0; i < dimension; i++) {
+            sum += colorComponentDistance(color1, color2, i);
+        }
+        return sum;
+    }
+
+    private int colorComponentDistance(int color1, int color2, int axis) {
+        int dist = Math.abs(getValueByAxis(color1, axis) - getValueByAxis(color2, axis));
+        return dist * dist;
+    }
+
+    public Optional<D> getNearestNeighbor(int targetColor) {
+        Optional<Node<D>> bestOpt = findNode(root, targetColor, Node::isLeaf);
+        Node<D> best = null;
+        int bestDist = Integer.MAX_VALUE;
+        if (!bestOpt.isPresent()) {
+            return Optional.empty();
+        }
+        best = bestOpt.get();
+        if (best == root) {
+            return Optional.of(best.data);
+        }
+        bestDist = colorDistance(targetColor, best.color);
+
+        // start at root again and check weather the circle around best with radius^2=bestDist intersects its area
+        int axis;
+        Node<D> current;
+        int currentDist;
+        Queue<Node<D>> nextNodes = new LinkedList<>();
+        Queue<Integer> nextAxis = new LinkedList<>();
+        nextNodes.add(root);
+        nextAxis.add(0);
+        do {
+            current = nextNodes.poll();
+            axis = nextAxis.poll();
+            currentDist = colorDistance(current.color, targetColor);
+            if (currentDist < bestDist) {
+                best = current;
+                bestDist = currentDist;
+            }
+            int currentComponentDist = colorComponentDistance(targetColor, current.color, axis);
+            boolean addLeft = false, addRight = false;
+            if (bestDist < currentComponentDist) {
+                // completely on one side of the tree, other can be forgotten
+                if (getValueByAxis(targetColor, axis) < getValueByAxis(current.color, axis)) {
+                    // its in the left part, the right part can be discarded
+                    addLeft = true;
+                } else {
+                    addRight = true;
+                }
+            } else {
+                // overlaps both parts
+                addLeft = addRight = true;
+            }
+            if (addLeft && current.leftChild != null) {
+                nextNodes.add(current.leftChild);
+                nextAxis.add((axis + 1) % dimension);
+            }
+            if (addRight && current.rightChild != null) {
+                nextNodes.add(current.rightChild);
+                nextAxis.add((axis + 1) % dimension);
+            }
+        } while (!nextNodes.isEmpty());
+
+        return Optional.of(best.data);
+    }
+
+    private Optional<Node<D>> findNode(Node<D> startNode, int targetColor, Predicate<Node<D>> stopCondition) {
+        int depth = 0;
+        int axis;
+        Node<D> current = startNode;
+        while (current != null) {
+            if (stopCondition.test(current)) {
+                return Optional.of(current);
+            }
+            axis = depth % dimension;
+            int currValue = getValueByAxis(current.color, axis);
+            // go down the best possible path until stopCondition holds or there is no more child node
+            if (getValueByAxis(targetColor, axis) < currValue) {
+                current = current.leftChild != null ? current.leftChild : current.rightChild;
+            } else {
+                current = current.rightChild != null ? current.rightChild : current.leftChild;
+            }
+            depth++;
+        }
+        return Optional.empty();
+    }
+
+    private Optional<Node<D>> getExistingNode(int targetColor, D data) {
+        if (data == null) {
+            return Optional.empty();
+        }
+        return findNode(root, targetColor, current -> current.color == targetColor && (data.equals(current.data)));
     }
 
     @Override
     public String toString() {
-        return "Tree:\n" + root.toString();
+        return "Tree:\n" + root;
     }
 
     @Override
     public Iterator<Node<D>> iterator() {
         return new NodesIterator<>(root);
+    }
+
+    public int size() {
+        return size;
     }
 
     private static class NodesIterator<D> implements Iterator<Node<D>> {
@@ -83,11 +203,19 @@ public class KDColorTree<D> implements Iterable<KDColorTree.Node<D>> {
             }
         }
 
+        public boolean isLeaf() {
+            return leftChild == null && rightChild == null;
+        }
+
+        public String getColorString() {
+            return AbstractColor.alpha(color) + "," + AbstractColor.red(color) + ","
+                    + AbstractColor.green(color) + "," + AbstractColor.blue(color);
+        }
+
         @Override
         public String toString() {
-            String children = leftChild == null && rightChild == null ? "" : ": " + leftChild + "__" + rightChild;
-            return "(" + AbstractColor.alpha(color) + "," + AbstractColor.red(color) + ","
-                    + AbstractColor.green(color) + "," + AbstractColor.blue(color) + children + ")";
+            String children = isLeaf() ? "" : ": " + leftChild + "__" + rightChild;
+            return "(" + getColorString() + children + ")";
         }
 
         private void remove(int nodeDimension) {
@@ -174,12 +302,12 @@ public class KDColorTree<D> implements Iterable<KDColorTree.Node<D>> {
                         (int) (MEDIAN_ESTIMATION_SAMPLE_FRACTION * total));
     }
 
-    public static<D> KDColorTree<D> make(List<D> data, Function<D, Integer> colorExtractor, boolean useAlpha) {
-        Random random = new Random();
+    public static<D> KDColorTree<D> make(Random random, Collection<D> data, Function<D, Integer> colorExtractor, boolean useAlpha) {
         int dimension = useAlpha ? 4 : 3;
+        List<D> dataList = new ArrayList<>(data);
         int[] buffer = new int[getSampleSize(data.size())];
-        Node<D> root = makeRecursively(random, dimension, data, colorExtractor, buffer, 0);
-        return new KDColorTree<>(root);
+        Node<D> root = makeRecursively(random, dimension, dataList, colorExtractor, buffer, 0);
+        return new KDColorTree<>(root, data.size(), dimension);
     }
 
     private static<D> Node<D> makeRecursively(Random rnd, int dimension, List<D> data,

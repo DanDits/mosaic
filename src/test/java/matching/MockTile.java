@@ -9,7 +9,7 @@ public class MockTile implements MosaicTile<String> {
     private final int height;
     private final int width;
 
-    MockTile(String source, int average, int width, int height) {
+    public MockTile(String source, int average, int width, int height) {
         this.source = source;
         this.average = average;
         this.width = width;
