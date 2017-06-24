@@ -16,12 +16,12 @@
 package matching.workers;
 
 
-import java.util.*;
-
+import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
-import data.mosaic.MosaicTile;
+import util.image.ColorSpace;
+
+import java.util.*;
 
 /**
  * This class implements a {@link TileMatcher}. This is a very basic
@@ -34,22 +34,21 @@ import data.mosaic.MosaicTile;
  */
 public class SimpleLinearTileMatcher<S> extends TileMatcher<S> {
 	private List<MosaicTile<S>> tiles;
-	
-	/**
-	 * Creates a new SimpleTileMatcher from the MosaicTiles in the given database, optionally
-	 * alpha is used for matching.
-	 * @param data The data to take the MosaicTiles of.
-	 * @param useAlpha If alpha should be used for matching.
-	 */
-	public SimpleLinearTileMatcher(Collection<? extends MosaicTile<S>> data, boolean useAlpha, ColorMetric metric) {
-		super(useAlpha, metric);
+
+	public SimpleLinearTileMatcher(Collection<? extends MosaicTile<S>> data, ColorSpace space) {
+		super(space);
 		this.tiles = new LinkedList<>(data);
+	}
+
+	@Override
+	protected void onColorSpaceChanged() {
+		// ignore
 	}
 
 	@Override
 	public Optional<MosaicTile<S>> calculateBestMatch(MosaicFragment fragment) {
 		return this.tiles.stream().min(Comparator.comparingDouble(
-											tile -> mColorMetric.getDistance(tile.getAverageARGB(), fragment.getAverageRGB(), useAlpha)));
+											tile -> space.getDistance(tile.getAverageARGB(), fragment.getAverageRGB())));
 	}
 
 	@Override

@@ -27,6 +27,8 @@ public abstract class ColorSpace {
         }
     }
 
+    public abstract ColorSpace getInstanceByAlpha(boolean useAlpha);
+
     public static class RgbAbsolute extends RgbEuclid {
 
         public static final ColorSpace INSTANCE_WITH_ALPHA = new RgbAbsolute(true);
@@ -40,6 +42,15 @@ public abstract class ColorSpace {
         public ColorMetric getMetric() {
             return ColorMetric.Absolute.INSTANCE;
         }
+
+        @Override
+        public ColorSpace getInstanceByAlpha(boolean useAlpha) {
+            if (useAlpha) {
+                return INSTANCE_WITH_ALPHA;
+            }
+            return INSTANCE_WITHOUT_ALPHA;
+        }
+
     }
 
     public static class RgbEuclid extends ColorSpace {
@@ -93,6 +104,14 @@ public abstract class ColorSpace {
         public ColorMetric getMetric() {
             return ColorMetric.Euclid2.INSTANCE;
         }
+
+        @Override
+        public ColorSpace getInstanceByAlpha(boolean useAlpha) {
+            if (useAlpha) {
+                return INSTANCE_WITH_ALPHA;
+            }
+            return INSTANCE_WITHOUT_ALPHA;
+        }
     }
 
 
@@ -141,6 +160,14 @@ public abstract class ColorSpace {
                 return ColorMetric.BrightnessWithAlpha.INSTANCE;
             }
             return ColorMetric.BrightnessNoAlpha.INSTANCE;
+        }
+
+        @Override
+        public ColorSpace getInstanceByAlpha(boolean useAlpha) {
+            if (useAlpha) {
+                return INSTANCE_WITH_ALPHA;
+            }
+            return INSTANCE_WITHOUT_ALPHA;
         }
     }
 }

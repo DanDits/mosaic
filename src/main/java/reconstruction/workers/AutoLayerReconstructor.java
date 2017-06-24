@@ -16,11 +16,6 @@
 package reconstruction.workers;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import data.image.AbstractBitmap;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
@@ -28,7 +23,12 @@ import reconstruction.Reconstructor;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.ColorAnalysisUtil;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by daniel on 01.07.15.
@@ -39,18 +39,16 @@ public class AutoLayerReconstructor extends Reconstructor {
     private MosaicFragment mNext;
     private int mLayersApplied;
     private Iterator<Integer> mColorIterator;
-    private final boolean mUseAlpha;
     private List<List<Integer>> mUsedColorsStartPosition;
     private List<Integer> mUsedColors;
     private int[] mPositionDeltas;
-    private ColorMetric mColorMetric;
+    private ColorSpace space;
 
     public static class AutoLayerParameters extends ReconstructionParameters {
-        private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
+        private static final ColorSpace DEFAULT_SPACE = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
         public MultistepPercentProgressListener progress;
         public double factor;
-        public boolean useAlpha;
-        public ColorMetric metric;
+        public ColorSpace space;
 
         public AutoLayerParameters(AbstractBitmap source) {
             super(source);
@@ -67,16 +65,15 @@ public class AutoLayerReconstructor extends Reconstructor {
 
         @Override
         protected void resetToDefaults() {
-            useAlpha = true;
-            metric = DEFAULT_METRIC;
+            space = DEFAULT_SPACE;
             factor = 0.7;
             progress = null;
         }
 
         @Override
         protected void validateParameters() throws IllegalParameterException {
-            if (metric == null) {
-                metric = DEFAULT_METRIC;
+            if (space == null) {
+                space = DEFAULT_SPACE;
             }
             factor = Math.min(1., Math.max(0., factor));
         }
@@ -84,8 +81,7 @@ public class AutoLayerReconstructor extends Reconstructor {
 
     public AutoLayerReconstructor(AutoLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
-        mUseAlpha = parameters.useAlpha;
-        mColorMetric = parameters.metric;
+        space = parameters.space;
         init(parameters.getBitmapSource(), parameters.factor, parameters.progress);
     }
 
@@ -102,7 +98,7 @@ public class AutoLayerReconstructor extends Reconstructor {
                 colors[x + y * width] = source.getPixel(x, y);
             }
         }
-        final double maxSim = mColorMetric.maxValue(mUseAlpha);
+        final double maxSim = space.getMetric().maxValue(space.usesAlpha());
         final double sim = ColorAnalysisUtil.factorToSimilarityBound(factor);
         final int simBound = (int) (sim * maxSim);
         final int alreadyReachedMarker = Integer.MIN_VALUE;
@@ -120,7 +116,7 @@ public class AutoLayerReconstructor extends Reconstructor {
             deltas[analyzedToIndex] = 0; // marker no  longer required, reset delta
 
             for (int currIndex = analyzedToIndex + 1; currIndex < colors.length; currIndex++) {
-                if (mColorMetric.getDistance(colors[currIndex], currColor, mUseAlpha) <= simBound) {
+                if (space.getDistance(colors[currIndex], currColor) <= simBound) {
                     colors[currIndex] = currColor;
                     deltas[analyzedToIndex] = currIndex - analyzedToIndex;
                     deltas[currIndex] = alreadyReachedMarker; // so it is not added as a new color when main loop reaches this index
@@ -142,7 +138,7 @@ public class AutoLayerReconstructor extends Reconstructor {
             startPositions.add(usedColorsStartPosition.get(i));
             for (int j = i + 1; j < usedColors.size(); j++) {
                 Integer potentialColor = usedColors.get(j);
-                if (mColorMetric.getDistance(currColorI, potentialColor, mUseAlpha) <= simBound) { // if the pixel != 0 check is not done you need to check here if delta is zero else multiple paths might leed together and result in way too many pixels being drawn
+                if (space.getDistance(currColorI, potentialColor) <= simBound) { // if the pixel != 0 check is not done you need to check here if delta is zero else multiple paths might leed together and result in way too many pixels being drawn
                     startPositions.add(usedColorsStartPosition.get(j));
                     usedColors.remove(j);
                     usedColorsStartPosition.remove(j);

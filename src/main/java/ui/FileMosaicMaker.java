@@ -6,12 +6,12 @@ import data.image.BitmapSource;
 import data.mosaic.MosaicMaker;
 import data.mosaic.MosaicTile;
 import data.mosaic.SVDMaker;
+import matching.TileMatcher;
+import matching.workers.FastMatcher;
 import matching.workers.RandomMatcher;
 import matching.workers.ResolutionMatcher;
 import matching.workers.SimpleLinearTileMatcher;
-import matching.TileMatcher;
-import reconstruction.pattern.PatternReconstructor;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
 
 import java.io.File;
 import java.util.List;
@@ -23,8 +23,7 @@ import java.util.stream.Collectors;
  * Created by dd on 03.06.17.
  */
 public class FileMosaicMaker {
-    private static final boolean DEFAULT_USE_ALPHA = true;
-    private static final ColorMetric DEFAULT_COLOR_METRIC = ColorMetric.Euclid2.INSTANCE;
+    private static final ColorSpace DEFAULT_COLOR_SPACE = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
     private static final boolean SVD_RANK_PARAMETER_LOGARITHMIC_SCALE = true;
     private final MosaicMaker<String> mMosaicMaker;
     private MosaicMaker.ProgressCallback progress;
@@ -38,18 +37,20 @@ public class FileMosaicMaker {
         System.out.println("Loaded " + tiles.size() + " tiles from " + analyzationFiles.size() + " analyzation files.");
         BitmapSource<String> source = new FileBitmapSource();
 
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_USE_ALPHA, metric);
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_COLOR_SPACE);
         matcher.setTileReuseLimit(TileMatcher.REUSE_NONE);
 
         RandomMatcher<String> matcherRandom = new RandomMatcher<>(tiles);
         matcherRandom.setTileReuseLimit(TileMatcher.REUSE_NONE);
         matcherRandom.setRandom(new Random(46));
 
-        ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_USE_ALPHA, metric);
+        ResolutionMatcher<String> resolutionMatcher = new ResolutionMatcher<>(tiles, 0.9, DEFAULT_COLOR_SPACE);
 
 
-        mMosaicMaker = new MosaicMaker<>(matcherRandom, source, DEFAULT_USE_ALPHA, metric);
+        FastMatcher<String> fastMatcher = new FastMatcher<>(tiles, DEFAULT_COLOR_SPACE);
+        fastMatcher.setTileReuseLimit(TileMatcher.REUSE_NONE);
+
+        mMosaicMaker = new MosaicMaker<>(matcher, source, DEFAULT_COLOR_SPACE);
         //mMosaicMaker.setCutResultToSourceAlpha(true);
     }
 

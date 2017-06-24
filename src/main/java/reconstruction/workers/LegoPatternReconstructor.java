@@ -1,23 +1,22 @@
 package reconstruction.workers;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
 import data.mosaic.MosaicTile;
+import matching.TileMatcher;
+import matching.workers.SimpleLinearTileMatcher;
 import matching.workers.TrivialMatcher;
 import reconstruction.ReconstructionParameters;
-import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
 import util.image.ColorAnalysisUtil;
-import util.image.ColorMetric;
-import matching.workers.SimpleLinearTileMatcher;
-import matching.TileMatcher;
+import util.image.ColorSpace;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Inspired by https://github.com/JuanPotato/Legofy
@@ -61,8 +60,8 @@ public class LegoPatternReconstructor extends PatternReconstructor {
         }
 
         @Override
-        public ColorMetric getColorMetric(ColorMetric colorMetric) {
-            return colorMetric;
+        public ColorSpace getColorSpace(ColorSpace defaultSpace) {
+            return defaultSpace;
         }
     }
 
@@ -118,7 +117,7 @@ public class LegoPatternReconstructor extends PatternReconstructor {
     }
 
     @Override
-    public <S> TileMatcher<S> makeMatcher(boolean useAlpha, ColorMetric metric) {
+    public <S> TileMatcher<S> makeMatcher(ColorSpace space) {
         if (usePalettes) {
             List<MosaicTile<S>> tiles = new ArrayList<>();
             for (int value : LEGO_COLOR_PALETTE_SOLID) {
@@ -130,7 +129,7 @@ public class LegoPatternReconstructor extends PatternReconstructor {
             for (int value : LEGO_COLOR_PALETTE_EFFECTS) {
                 tiles.add(new VoidTile<>(value));
             }
-            return new SimpleLinearTileMatcher<>(tiles, useAlpha, metric);
+            return new SimpleLinearTileMatcher<>(tiles, space);
         } else {
             return new TrivialMatcher<>();
         }

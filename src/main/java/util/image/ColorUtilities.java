@@ -42,7 +42,7 @@ package util.image;
  *
  * @author Romain Guy <romain.guy@mac.com>
  */
-class ColorUtilities {
+public class ColorUtilities {
     private ColorUtilities() {
     }
 

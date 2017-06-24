@@ -1,9 +1,8 @@
 package matching.workers;
 
+import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
-import data.mosaic.MosaicTile;
 
 import java.util.Optional;
 
@@ -16,7 +15,7 @@ public class TrivialMatcher<S> extends TileMatcher<S> {
     private final Optional<NullTile> mOptionalTile;
 
     public TrivialMatcher() {
-        super(true, ColorMetric.Absolute.INSTANCE);
+        super(null);
         mTile = new NullTile();
         mOptionalTile = Optional.of(mTile);
     }
@@ -24,6 +23,11 @@ public class TrivialMatcher<S> extends TileMatcher<S> {
     @Override
     protected boolean cacheEnabled() {
         return false; // not needed
+    }
+
+    @Override
+    protected void onColorSpaceChanged() {
+        //ignore
     }
 
     private class NullTile implements MosaicTile<S> {

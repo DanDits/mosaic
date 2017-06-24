@@ -16,14 +16,17 @@
 package data.mosaic;
 
 import data.image.*;
-import reconstruction.*;
+import matching.TileMatcher;
+import reconstruction.MosaicFragment;
+import reconstruction.ReconstructionParameters;
+import reconstruction.Reconstructor;
+import reconstruction.pattern.PatternReconstructor;
 import reconstruction.workers.*;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.Color;
 import util.image.ColorMetric;
-import matching.TileMatcher;
-import reconstruction.pattern.PatternReconstructor;
+import util.image.ColorSpace;
 
 import java.util.Optional;
 
@@ -35,8 +38,7 @@ import java.util.Optional;
 public class MosaicMaker<S> {
 	private final BitmapSource<S> mBitmapSource;
 	private TileMatcher<S> mMatcher;
-	private boolean mUseAlpha;
-	private ColorMetric mColorMetric;
+	private ColorSpace space;
 	private boolean cutResultToSourceAlpha;
 
     public interface ProgressCallback extends PercentProgressListener {
@@ -59,14 +61,13 @@ public class MosaicMaker<S> {
         }
     }
 
-	public MosaicMaker(TileMatcher<S> tileMatcher, BitmapSource<S> bitmapSource, boolean useAlpha, ColorMetric metric) {
+	public MosaicMaker(TileMatcher<S> tileMatcher, BitmapSource<S> bitmapSource, ColorSpace space) {
 		if (tileMatcher == null || bitmapSource == null) {
 			throw new IllegalArgumentException("No matcher or source given.");
 		}
 		mMatcher = tileMatcher;
 		mBitmapSource = bitmapSource;
-        mUseAlpha = useAlpha;
-        setColorMetric(metric);
+        setColorSpace(space);
 	}
 
 
@@ -87,17 +88,12 @@ public class MosaicMaker<S> {
         return mosaic;
     }
 
-	public void setUseAlpha(boolean useAlpha) {
-		mUseAlpha = useAlpha;
-		mMatcher.setUseAlpha(useAlpha);
-	}
-
-    public void setColorMetric(ColorMetric metric) {
-        mColorMetric = metric;
-        if (mColorMetric == null) {
-            throw new IllegalArgumentException("No color metric given.");
+    public void setColorSpace(ColorSpace space) {
+        this.space = space;
+        if (space == null) {
+            throw new IllegalArgumentException("No color space given.");
         }
-        mMatcher.setColorMetric(metric);
+        mMatcher.setColorSpace(space);
     }
 
     public MultiRectReconstructor.MultiRectParameters makeMultiRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
@@ -105,8 +101,7 @@ public class MosaicMaker<S> {
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
         params.similarityFactor = mergeFactor;
-        params.useAlpha = mUseAlpha;
-        params.metric = mColorMetric;
+        params.space = space;
         return params;
     }
 
@@ -127,9 +122,8 @@ public class MosaicMaker<S> {
     public AutoLayerReconstructor.AutoLayerParameters makeAutoLayerParameters(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
         MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
         AutoLayerReconstructor.AutoLayerParameters params = new AutoLayerReconstructor.AutoLayerParameters(source);
-        params.useAlpha = mUseAlpha;
+        params.space = space;
         params.factor = mergeFactor;
-        params.metric = mColorMetric;
         params.progress = multiProgress;
         return params;
     }
@@ -137,8 +131,7 @@ public class MosaicMaker<S> {
     public FixedLayerReconstructor.FixedLayerParameters makeFixedLayerParameters(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
         MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
         FixedLayerReconstructor.FixedLayerParameters params = new FixedLayerReconstructor.FixedLayerParameters(source);
-        params.useAlpha = mUseAlpha;
-        params.metric = mColorMetric;
+        params.space = space;
         params.layersCount = clusterCount;
         params.progress = multiProgress;
         return params;
@@ -169,7 +162,7 @@ public class MosaicMaker<S> {
         }
         AbstractBitmap source = parameters.getBitmapSource();
         PatternReconstructor reconstructor = parameters.makeReconstructor();
-        return finishMosaic(source, make(reconstructor.makeMatcher(usesAlpha(), parameters.getColorMetric(getColorMetric())),
+        return finishMosaic(source, make(reconstructor.makeMatcher(parameters.getColorSpace(space)),
                                          reconstructor.makeSource(), reconstructor, callback));
     }
 
@@ -229,11 +222,5 @@ public class MosaicMaker<S> {
 		return reconstructor.getReconstructed();
 	}
 
-    public boolean usesAlpha() {
-        return mUseAlpha;
-    }
 
-    public ColorMetric getColorMetric() {
-        return mColorMetric;
-    }
 }

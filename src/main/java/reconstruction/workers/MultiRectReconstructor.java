@@ -6,7 +6,7 @@ import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.image.ColorAnalysisUtil;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,8 +19,7 @@ public class MultiRectReconstructor extends RectReconstructor {
 
     private final List<ImageResolution> allowedResolutions;
     private final double similarityFactor;
-    private final ColorMetric colorMetric;
-    private final boolean useAlpha;
+    private final ColorSpace space;
     private int currentRowIndex;
     private int currentColumnIndex;
     private boolean[][] rectIsUsed;
@@ -28,9 +27,8 @@ public class MultiRectReconstructor extends RectReconstructor {
     private int rectUsedCount;
 
     public static class MultiRectParameters extends RectParameters {
-        private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
-        public boolean useAlpha;
-        public ColorMetric metric;
+        private static final ColorSpace DEFAULT_SPACE = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        public ColorSpace space;
         public double similarityFactor;
         public List<ImageResolution> resolutions;
         public MultiRectParameters(AbstractBitmap source) {
@@ -40,8 +38,7 @@ public class MultiRectReconstructor extends RectReconstructor {
         @Override
         protected void resetToDefaults() {
             super.resetToDefaults();
-            useAlpha = true;
-            metric = DEFAULT_METRIC;
+            space = DEFAULT_SPACE;
             similarityFactor = 0.8;
             resolutions = new ArrayList<>();
             resolutions.add(source.getResolution());
@@ -53,8 +50,8 @@ public class MultiRectReconstructor extends RectReconstructor {
         @Override
         protected void validateParameters() throws IllegalParameterException {
             super.validateParameters();
-            if (metric == null) {
-                metric = DEFAULT_METRIC;
+            if (space == null) {
+                space = DEFAULT_SPACE;
             }
             similarityFactor = Math.max(0., Math.min(1., similarityFactor));
             if (resolutions == null || resolutions.isEmpty() || resolutions.contains(null)) {
@@ -72,8 +69,7 @@ public class MultiRectReconstructor extends RectReconstructor {
     public MultiRectReconstructor(MultiRectParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         super(parameters);
         parameters.validateParameters();
-        this.colorMetric = parameters.metric;
-        this.useAlpha = parameters.useAlpha;
+        this.space = parameters.space;
         this.allowedResolutions = new ArrayList<>(parameters.resolutions);
         this.similarityFactor = parameters.similarityFactor;
         rectIsUsed = new boolean[getRows()][getColumns()];
@@ -181,14 +177,13 @@ public class MultiRectReconstructor extends RectReconstructor {
 
     private boolean checkSubRect(int baseColor, double simBound, int startRow, int startColumn, int endRow, int endColumn) {
 
-        final double maxSim = colorMetric.maxValue(useAlpha);
+        final double maxSim = space.getMetric().maxValue(space.usesAlpha());
         for (int r = startRow; r < endRow; r++) {
             for (int c = startColumn; c < endColumn; c++) {
                 if (rectIsUsed[r][c]) {
                     return false;
                 }
-                double currFactor = colorMetric.getDistance(baseColor, resultingRGBA[r][c],
-                        useAlpha) / maxSim;
+                double currFactor = space.getDistance(baseColor, resultingRGBA[r][c]) / maxSim;
                 if (currFactor > simBound) {
                     return false;
                 }

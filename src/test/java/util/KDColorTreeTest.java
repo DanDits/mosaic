@@ -1,13 +1,12 @@
 package util;
 
-import util.image.Color;
 import data.mosaic.MosaicTile;
 import matching.MockTile;
 import matching.workers.SimpleLinearTileMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
+import util.image.Color;
 import util.image.ColorSpace;
 import util.image.KDColorTree;
 
@@ -93,9 +92,7 @@ public class KDColorTreeTest {
 
     @Test
     public void testCompareWithLinearMatcher() {
-        ColorMetric metric = space.getMetric();
-        SimpleLinearTileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles,
-                                                                                false, metric);
+        SimpleLinearTileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, space);
         int delta = 10; // will take about 25 seconds for delta=2 as linear matcher is slow
         for (int red = 0; red <= 255; red += delta) {
             for (int green = 0; green <= 255; green += delta) {
@@ -106,8 +103,8 @@ public class KDColorTreeTest {
                     Optional<MosaicTile<String>> tile2 = tree.getNearestNeighbor(color);
                     assertTrue(tile2.isPresent());
                     boolean sameSource = tile1.get().getSource().equals(tile2.get().getSource());
-                    double dist1 = metric.getDistance(tile1.get().getAverageARGB(), color, false);
-                    double dist2 = metric.getDistance(tile2.get().getAverageARGB(), color, false);
+                    double dist1 = space.getDistance(tile1.get().getAverageARGB(), color);
+                    double dist2 = space.getDistance(tile2.get().getAverageARGB(), color);
                     assertTrue(sameSource || dist1 == dist2);
                 }
             }

@@ -1,4 +1,4 @@
-package util.image;
+package awt;
 /*
  * $Id: BlendComposite.java,v 1.9 2007/02/28 01:21:29 gfx Exp $
  *
@@ -33,6 +33,8 @@ package util.image;
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+import util.image.ColorUtilities;
 
 import java.awt.*;
 import java.awt.image.*;

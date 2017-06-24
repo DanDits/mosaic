@@ -3,7 +3,6 @@ package matching.workers;
 import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
 import util.image.ColorSpace;
 import util.image.KDColorTree;
 
@@ -23,12 +22,10 @@ public class FastMatcher<S> extends TileMatcher<S> {
 
     private KDColorTree<MosaicTile<S>> tree;
     private final List<MosaicTile<S>> tiles;
-    private ColorSpace space;
 
-    protected FastMatcher(Collection<? extends MosaicTile<S>> tiles, ColorSpace space) {
-        super(space.usesAlpha(), space.getMetric());
+    public FastMatcher(Collection<? extends MosaicTile<S>> tiles, ColorSpace space) {
+        super(space);
         this.tiles = new ArrayList<>(tiles);
-        this.space = space;
         initTree();
     }
 
@@ -36,10 +33,6 @@ public class FastMatcher<S> extends TileMatcher<S> {
         tree = KDColorTree.make(new Random(), tiles, space);
     }
 
-    @Override
-    public void setColorMetric(ColorMetric metric) {
-        throw new UnsupportedOperationException("Metric cannot be changed for FastMatcher.");
-    }
 
     @Override
     protected Optional<? extends MosaicTile<S>> calculateBestMatch(MosaicFragment wantedTile) {
@@ -47,12 +40,8 @@ public class FastMatcher<S> extends TileMatcher<S> {
     }
 
     @Override
-    public void setUseAlpha(boolean useAlpha) {
-        boolean oldAlpha = usesAlpha();
-        super.setUseAlpha(useAlpha);
-        if (oldAlpha != useAlpha) {
-            initTree();
-        }
+    protected void onColorSpaceChanged() {
+        initTree();
     }
 
     @Override

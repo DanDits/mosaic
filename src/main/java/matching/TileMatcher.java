@@ -16,12 +16,11 @@
 package matching;
 
 
-
+import data.mosaic.MosaicTile;
 import reconstruction.MosaicFragment;
 import util.caching.Cachable;
 import util.caching.LruCache;
-import util.image.ColorMetric;
-import data.mosaic.MosaicTile;
+import util.image.ColorSpace;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,26 +34,22 @@ import java.util.Optional;
  */
 public abstract class TileMatcher<S> {
 	private static final int CACHE_SIZE = 64;
-    private static final ColorMetric DEFAULT_COLOR_METRIC = ColorMetric.Euclid2.INSTANCE;
+    private static final ColorSpace DEFAULT_COLOR_SPACE = ColorSpace.RgbEuclid.INSTANCE_WITHOUT_ALPHA;
 	public static final int REUSE_UNLIMITED = -1;
 	public static final int REUSE_NONE = 0;
 
-	protected ColorMetric mColorMetric;
-    private Cachable<MosaicFragment, MosaicTile<S>> mMatchesCache = new LruCache<>(CACHE_SIZE);
+	protected ColorSpace space;
+    private Cachable<MosaicFragment, MosaicTile<S>> matchesCache = new LruCache<>(CACHE_SIZE);
     private Map<S, Integer> reuseCount = new HashMap<>();
 
-    /**
-     * If the TileMatcher uses the alpha value of the rgb values for matching.
-     */
-    protected boolean useAlpha;
 	private int reuseLimit = REUSE_UNLIMITED;
 
 	protected void setCacheSize(int size) {
-    	mMatchesCache.setCacheSize(size);
+    	matchesCache.setCacheSize(size);
 	}
 
     protected void resetHashMatches() {
-        mMatchesCache.clearCache(Cachable.CLEAR_EMPTY);
+        matchesCache.clearCache(Cachable.CLEAR_EMPTY);
     }
 
     protected boolean cacheEnabled() {
@@ -63,7 +58,7 @@ public abstract class TileMatcher<S> {
 
     private Optional<? extends MosaicTile<S>> getBestMatchHashed(MosaicFragment wantedFragment) {
 		if (cacheEnabled()) {
-			return mMatchesCache.getFromCache(wantedFragment, this::calculateBestMatch);
+			return matchesCache.getFromCache(wantedFragment, this::calculateBestMatch);
 		}
 		return calculateBestMatch(wantedFragment);
     }
@@ -72,23 +67,22 @@ public abstract class TileMatcher<S> {
     	this.reuseLimit = limit;
 	}
 
-    public void setUseAlpha(boolean useAlpha) {
-    	boolean oldUseAlpha = this.useAlpha;
-        this.useAlpha = useAlpha;
-        if (oldUseAlpha != useAlpha) {
+    public final void setUseAlpha(boolean useAlpha) {
+    	boolean oldUseAlpha = usesAlpha();
+    	space = space.getInstanceByAlpha(useAlpha);
+        if (oldUseAlpha != usesAlpha()) {
         	resetHashMatches();
+        	onColorSpaceChanged();
 		}
     }
 
-	/**
-	 * Creates a new tile matcher, the given flag simply signals
-	 * if the implementing tile matcher uses alpha for matching.
-     * @param useAlpha If the matcher uses the alpha value for matching.
-     * @param metric The color metric to use, if null defaults to Euclid2.
-     */
-    protected TileMatcher(boolean useAlpha, ColorMetric metric) {
-		setUseAlpha(useAlpha);
-		setColorMetric(metric);
+	protected abstract void onColorSpaceChanged();
+
+    protected TileMatcher(ColorSpace space) {
+		this.space = space;
+		if (space == null) {
+			this.space = DEFAULT_COLOR_SPACE;
+		}
 	}
 
 	protected abstract Optional<? extends MosaicTile<S>> calculateBestMatch(MosaicFragment wantedTile);
@@ -105,7 +99,7 @@ public abstract class TileMatcher<S> {
 				if (currentReuseCount >= reuseLimit) {
 					canUseResult = false;
 					removeTile(result.get());
-					mMatchesCache.removeFromCache(wantedFragment);
+					matchesCache.removeFromCache(wantedFragment);
 				}
 			}
 		} while (!canUseResult);
@@ -142,19 +136,20 @@ public abstract class TileMatcher<S> {
 	 * value of the rgb color codes into account.
 	 * @return If this matcher uses alpha.
 	 */
-	public boolean usesAlpha() {
-		return this.useAlpha;
+	public final boolean usesAlpha() {
+		return space.usesAlpha();
 	}
 
-    public void setColorMetric(ColorMetric metric) {
-		ColorMetric oldMetric = mColorMetric;
-	    if (metric == null) {
-	        mColorMetric = DEFAULT_COLOR_METRIC;
+    public final void setColorSpace(ColorSpace newSpace) {
+		ColorSpace oldSpace = space;
+	    if (newSpace == null) {
+	        space = DEFAULT_COLOR_SPACE;
         } else {
-	        mColorMetric = metric;
+	        space = newSpace;
         }
-        if (oldMetric != mColorMetric) {
+        if (!space.equals(oldSpace)) {
 	    	resetHashMatches();
+	    	onColorSpaceChanged();
 		}
     }
 }

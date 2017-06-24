@@ -5,7 +5,7 @@ import matching.workers.SimpleLinearTileMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,8 +34,9 @@ public class SimpleLinearTileMatcherTest {
 
     @Test
     public void testEmptyMatch() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(Collections.emptyList(), true, metric);
+
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(Collections.emptyList(), space);
         assertEquals(0, matcher.getUsedTilesCount());
         assertEquals(1., matcher.getAccuracy(), 1E-10);
         matcher.setAccuracy(0.3);
@@ -50,8 +51,8 @@ public class SimpleLinearTileMatcherTest {
 
     @Test
     public void testRemoveTile() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, true, metric);
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF0000));
         assertTrue(bestMatch.isPresent());
         assertEquals(5, matcher.getUsedTilesCount());
@@ -62,8 +63,8 @@ public class SimpleLinearTileMatcherTest {
 
     @Test
     public void testExactMatch() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, true, metric);
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF0000));
         assertTrue(bestMatch.isPresent());
         assertEquals("S1", bestMatch.get().getSource());
@@ -83,8 +84,8 @@ public class SimpleLinearTileMatcherTest {
 
     @Test
     public void testInexactMatch() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, true, metric);
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFA0105));
         assertTrue(bestMatch.isPresent());
         assertEquals("S1", bestMatch.get().getSource());

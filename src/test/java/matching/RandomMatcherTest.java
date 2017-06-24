@@ -36,10 +36,10 @@ public class RandomMatcherTest {
         assertEquals(0., matcher.getAccuracy(), 1E-10);
         assertFalse(matcher.setAccuracy(1.));
         assertEquals(0., matcher.getAccuracy(), 1E-10);
-        assertTrue(matcher.usesAlpha());
-        matcher.setUseAlpha(false);
         assertFalse(matcher.usesAlpha());
         matcher.setUseAlpha(true);
+        assertTrue(matcher.usesAlpha());
+        matcher.setUseAlpha(false);
         assertTrue(matcher.cacheEnabled());
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragment());
         assertFalse(bestMatch.isPresent());

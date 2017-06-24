@@ -43,6 +43,10 @@ public class Color {
     static final IntToIntFunction[] RGBA_EXTRACTORS = new IntToIntFunction[] {Color::red,
                     Color::green, Color::blue, Color::alpha};
 
+    public static String visualize(int argb) {
+        return visualize(argb, true, false);
+    }
+
     public static String visualize(int argb, boolean useAlpha, boolean decimalValues) {
         StringBuilder builder = new StringBuilder(decimalValues ? (useAlpha ? 15 : 11) : (useAlpha ? 10 : 8));
         IntToIntFunction[] extractors = (useAlpha ? ARGB_EXTRACTORS : RGB_EXTRACTORS);
@@ -57,6 +61,7 @@ public class Color {
                 }
                 builder.append(extractedValue);
             } else {
+                // we don't simply use toHexString on total argb as we want to properly show leading zeros
                 String hexValue = Integer.toHexString(extractedValue).toUpperCase();
                 if (hexValue.length() == 1) {
                     builder.append('0');

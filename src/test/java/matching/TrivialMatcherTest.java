@@ -25,10 +25,10 @@ public class TrivialMatcherTest {
         assertEquals(1., matcher.getAccuracy(), 1E-10);
         assertFalse(matcher.setAccuracy(0.));
         assertEquals(1., matcher.getAccuracy(), 1E-10);
-        assertTrue(matcher.usesAlpha());
-        matcher.setUseAlpha(false);
         assertFalse(matcher.usesAlpha());
         matcher.setUseAlpha(true);
+        assertTrue(matcher.usesAlpha());
+        matcher.setUseAlpha(false);
         assertFalse(matcher.cacheEnabled());
         int seed = 1337;
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragment(seed));

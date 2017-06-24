@@ -2,11 +2,10 @@ package reconstruction.pattern;
 
 
 import data.image.AbstractBitmap;
-import reconstruction.ReconstructionParameters;
-import reconstruction.Reconstructor;
-import util.image.ColorMetric;
 import matching.TileMatcher;
+import reconstruction.ReconstructionParameters;
 import reconstruction.workers.RectReconstructor;
+import util.image.ColorSpace;
 
 /**
  * Created by daniel on 05.12.15.
@@ -26,7 +25,7 @@ public abstract class PatternReconstructor extends RectReconstructor {
 
         public abstract PatternReconstructor makeReconstructor() throws IllegalParameterException;
 
-        public abstract ColorMetric getColorMetric(ColorMetric colorMetric);
+        public abstract ColorSpace getColorSpace(ColorSpace defaultSpace);
     }
 
     public PatternReconstructor(PatternParameters parameters) throws ReconstructionParameters.IllegalParameterException {
@@ -42,5 +41,5 @@ public abstract class PatternReconstructor extends RectReconstructor {
 
     public abstract <S> PatternSource<S> makeSource();
 
-    public abstract <S> TileMatcher<S> makeMatcher(boolean useAlpha, ColorMetric metric);
+    public abstract <S> TileMatcher<S> makeMatcher(ColorSpace space);
 }

@@ -38,7 +38,7 @@ public class AbstractColorTest {
         assertEquals("255,255,255,255", Color.visualize(0xFFFFFFFF, true, true));
         assertEquals("0xFFFFFF", Color.visualize(0xFFFFFFFF, false, false));
         assertEquals("255,255,255", Color.visualize(0xFFFFFFFF, false, true));
-        assertEquals("0xABCD1234", Color.visualize(0xABCD1234, true, false));
+        assertEquals("0xABCD1204", Color.visualize(0xABCD1204, true, false));
         assertEquals("122,133,50,0", Color.visualize(Color.argb(122, 133, 50, 0),
                                                      true, true));
     }

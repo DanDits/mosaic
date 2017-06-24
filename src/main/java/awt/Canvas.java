@@ -4,7 +4,6 @@ import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import util.image.Color;
 import data.image.PorterDuffMode;
-import util.image.BlendComposite;
 
 import java.awt.*;
 import java.awt.geom.QuadCurve2D;

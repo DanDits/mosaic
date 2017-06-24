@@ -4,7 +4,7 @@ import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import org.pmw.tinylog.Logger;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,12 +16,17 @@ public class ResolutionMatcher<S> extends TileMatcher<S> {
     private final List<MosaicTile<S>> tiles;
     private double accuracy;
 
-    public ResolutionMatcher(Collection<? extends MosaicTile<S>> data, double accuracy, boolean useAlpha, ColorMetric metric) {
-        super(useAlpha, metric);
+    public ResolutionMatcher(Collection<? extends MosaicTile<S>> data, double accuracy, ColorSpace space) {
+        super(space);
         this.tiles = new ArrayList<>(data);
         setAccuracy(accuracy);
     }
 
+
+    @Override
+    protected void onColorSpaceChanged() {
+
+    }
 
     @Override
     protected Optional<? extends MosaicTile<S>> calculateBestMatch(MosaicFragment wantedTile) {
@@ -44,7 +49,7 @@ public class ResolutionMatcher<S> extends TileMatcher<S> {
         Logger.trace("ResolutionMatcher with accuracy {} got {}/{} tile(s) with fitting resolution {}x{}",
                      accuracy, useTiles.size(), tiles.size(), wantedTile.getWidth(), wantedTile.getHeight());
         return useTiles.stream().min(Comparator.comparingDouble(
-                tile -> mColorMetric.getDistance(tile.getAverageARGB(), wantedTile.getAverageRGB(), useAlpha)));
+                tile -> space.getDistance(tile.getAverageARGB(), wantedTile.getAverageRGB())));
     }
 
     private static double accuracyToAllowedDifference(double accuracy) {

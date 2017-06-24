@@ -5,7 +5,7 @@ import matching.workers.ResolutionMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,8 +38,8 @@ public class ResolutionMatcherTest {
 
     @Test
     public void testRemoveTile() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, 1., true, metric);
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, 1., space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(100, 148));
         assertTrue(bestMatch.isPresent());
 
@@ -51,9 +51,9 @@ public class ResolutionMatcherTest {
 
     @Test
     public void testEmptyMatch() {
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
         double acc = 0.9;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(Collections.emptyList(), acc, true, metric);
+        TileMatcher<String> matcher = new ResolutionMatcher<>(Collections.emptyList(), acc, space);
         assertEquals(0, matcher.getUsedTilesCount());
         assertEquals(acc, matcher.getAccuracy(), 1E-10);
         acc = 0.3;
@@ -71,8 +71,8 @@ public class ResolutionMatcherTest {
     public void testInexactMatchFullAccuracy() {
         double acc = 1.; // will drop every tile and search for the one with the closest resolution difference
 
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, true, metric);
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, space);
 
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(100, 148));
         assertTrue(bestMatch.isPresent());
@@ -95,8 +95,8 @@ public class ResolutionMatcherTest {
     public void testInexactMatchMediumAccuracy() {
         double acc = 0.5;
 
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, true, metric);
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, space);
 
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(100, 148));
         assertTrue(bestMatch.isPresent());
@@ -110,8 +110,9 @@ public class ResolutionMatcherTest {
     @Test
     public void testExactMatchFullAccuracy() {
         double acc = 1.;
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, true, metric);
+
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(2, 3));
         assertTrue(bestMatch.isPresent());
         assertEquals("S2", bestMatch.get().getSource());
@@ -132,8 +133,9 @@ public class ResolutionMatcherTest {
     @Test
     public void testExactMatchMediumAccuracy() {
         double acc = 0.5;
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, true, metric);
+
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(2, 3));
         assertTrue(bestMatch.isPresent());
         assertEquals("S4", bestMatch.get().getSource());
@@ -154,8 +156,9 @@ public class ResolutionMatcherTest {
     @Test
     public void testExactMatchNoAccuracy() {
         double acc = 0.0; // basically a SimpleLinearTileMatcher now
-        ColorMetric metric = ColorMetric.Euclid2.INSTANCE;
-        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, true, metric);
+
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new ResolutionMatcher<>(tiles, acc, space);
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForResolution(2, 3));
         assertTrue(bestMatch.isPresent());
         assertEquals("S4", bestMatch.get().getSource());

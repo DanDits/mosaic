@@ -22,7 +22,7 @@ import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.PercentProgressListener;
 import util.image.Color;
-import util.image.ColorMetric;
+import util.image.ColorSpace;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -38,8 +38,7 @@ import java.util.Random;
 public class FixedLayerReconstructor extends Reconstructor {
     private static final int MAX_RECALCULATIONS_BASE = 7;
     private static final int MAX_RECALCULATIONS_LINEAR_GROWTH = 2;
-    private final boolean mUseAlpha;
-    private final ColorMetric mColorMetric;
+    private final ColorSpace space;
     private MosaicFragment mFragment;
     private AbstractBitmap mResult;
     private int[] mPixelClusterNumber;
@@ -52,10 +51,9 @@ public class FixedLayerReconstructor extends Reconstructor {
     private int[] mClusterBitmapHeight;
 
     public static class FixedLayerParameters extends ReconstructionParameters {
-        private static final ColorMetric DEFAULT_METRIC = ColorMetric.Euclid2.INSTANCE;
+        private static final ColorSpace DEFAULT_SPACE = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
         public PercentProgressListener progress;
-        public boolean useAlpha;
-        public ColorMetric metric;
+        public ColorSpace space;
         public int layersCount;
 
         public FixedLayerParameters(AbstractBitmap source) {
@@ -69,16 +67,15 @@ public class FixedLayerReconstructor extends Reconstructor {
 
         @Override
         protected void resetToDefaults() {
-            useAlpha = true;
-            metric = DEFAULT_METRIC;
+            space = DEFAULT_SPACE;
             layersCount = 3;
             progress = null;
         }
 
         @Override
         protected void validateParameters() throws IllegalParameterException {
-            if (metric == null) {
-                metric = DEFAULT_METRIC;
+            if (space == null) {
+                space = DEFAULT_SPACE;
             }
             if (layersCount < 1) {
                 throw new IllegalParameterException(layersCount, "Layers count must be positive.");
@@ -88,8 +85,7 @@ public class FixedLayerReconstructor extends Reconstructor {
 
     public FixedLayerReconstructor(FixedLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
-        mUseAlpha = parameters.useAlpha;
-        mColorMetric = parameters.metric;
+        space = parameters.space;
         init(parameters.getBitmapSource(), parameters.layersCount, parameters.progress);
     }
 
@@ -123,11 +119,11 @@ public class FixedLayerReconstructor extends Reconstructor {
 
         // init k-means++ style by preferring centers that are further away from the last center
         clusterCenters[0] = pixelColors[rand.nextInt(pixelColors.length)];
-        final double maxDist = mColorMetric.maxValue(mUseAlpha);
+        final double maxDist = space.getMetric().maxValue(space.usesAlpha());
         for (int cluster = 1; cluster < clusterCount; cluster++) {
             clusterCenters[cluster] = pixelColors[rand.nextInt(pixelColors.length)];
             for (int i = 0; i < pixelColors.length; i++) {
-                double distFraction = mColorMetric.getDistance(pixelColors[i], clusterCenters[cluster - 1], mUseAlpha) / maxDist;
+                double distFraction = space.getDistance(pixelColors[i], clusterCenters[cluster - 1]) / maxDist;
                 distFraction *= distFraction;
                 distFraction *= distFraction;
                 distFraction *= i / (double) pixelColors.length;
@@ -141,7 +137,7 @@ public class FixedLayerReconstructor extends Reconstructor {
         int[] clusterCenterRed = new int[clusterCount];
         int[] clusterCenterGreen = new int[clusterCount];
         int[] clusterCenterBlue = new int[clusterCount];
-        int[] clusterCenterAlpha = mUseAlpha ? new int[clusterCount] : null;
+        int[] clusterCenterAlpha = space.usesAlpha() ? new int[clusterCount] : null;
         int[] clusterSize = new int[clusterCount];
         int redistributionCount = 0;
         int maxRedistributions = MAX_RECALCULATIONS_BASE + MAX_RECALCULATIONS_LINEAR_GROWTH * clusterCount;
@@ -158,7 +154,7 @@ public class FixedLayerReconstructor extends Reconstructor {
                 double minWeightIncrease = Double.MAX_VALUE;
                 int minWeightIncreaseIndex = 0;
                 for (int cluster = 0; cluster < clusterCount; cluster++) {
-                    double currWeightIncrease = mColorMetric.getDistance(clusterCenters[cluster], currColor, mUseAlpha);
+                    double currWeightIncrease = space.getDistance(clusterCenters[cluster], currColor);
                     if (currWeightIncrease < minWeightIncrease) {
                         minWeightIncrease = currWeightIncrease;
                         minWeightIncreaseIndex = cluster;
@@ -177,7 +173,7 @@ public class FixedLayerReconstructor extends Reconstructor {
             Arrays.fill(clusterCenterRed, 0);
             Arrays.fill(clusterCenterGreen, 0);
             Arrays.fill(clusterCenterBlue, 0);
-            if (mUseAlpha) {
+            if (space.usesAlpha()) {
                 Arrays.fill(clusterCenterAlpha, 0);
             }
             Arrays.fill(clusterSize, 0);
@@ -187,7 +183,7 @@ public class FixedLayerReconstructor extends Reconstructor {
                 clusterCenterRed[cluster] += Color.red(color);
                 clusterCenterGreen[cluster] += Color.green(color);
                 clusterCenterBlue[cluster] += Color.blue(color);
-                if (mUseAlpha) {
+                if (space.usesAlpha()) {
                     clusterCenterAlpha[cluster] += Color.alpha(color);
                 }
                 clusterSize[cluster]++;
@@ -198,7 +194,7 @@ public class FixedLayerReconstructor extends Reconstructor {
                     int red = clusterCenterRed[cluster] / size;
                     int green = clusterCenterGreen[cluster] / size;
                     int blue = clusterCenterBlue[cluster] / size;
-                    int alpha = mUseAlpha ? clusterCenterAlpha[cluster] / size : 255;
+                    int alpha = space.usesAlpha() ? clusterCenterAlpha[cluster] / size : 255;
                     clusterCenters[cluster] = Color.argb(alpha, red, green, blue);
                 }
             }

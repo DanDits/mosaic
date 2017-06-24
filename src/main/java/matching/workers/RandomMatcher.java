@@ -3,7 +3,6 @@ package matching.workers;
 import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import reconstruction.MosaicFragment;
-import util.image.ColorMetric;
 
 import java.util.*;
 
@@ -16,7 +15,7 @@ public class RandomMatcher<S> extends TileMatcher<S> {
     private Random random;
 
     public RandomMatcher(Collection<MosaicTile<S>> data) {
-        super(true, ColorMetric.Euclid2.INSTANCE);
+        super(null);
         tiles = new ArrayList<>(data);
         setRandom(new Random());
     }
@@ -26,6 +25,11 @@ public class RandomMatcher<S> extends TileMatcher<S> {
         if (random == null) {
             throw new NullPointerException();
         }
+    }
+
+    @Override
+    protected void onColorSpaceChanged() {
+        // ignore
     }
 
     @Override

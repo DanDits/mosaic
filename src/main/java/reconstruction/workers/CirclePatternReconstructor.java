@@ -3,14 +3,14 @@ package reconstruction.workers;
 import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
-import util.image.Color;
+import matching.TileMatcher;
+import matching.workers.TrivialMatcher;
 import reconstruction.ReconstructionParameters;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
+import util.image.Color;
 import util.image.ColorAnalysisUtil;
-import util.image.ColorMetric;
-import matching.TileMatcher;
-import matching.workers.TrivialMatcher;
+import util.image.ColorSpace;
 
 /**
  * Created by daniel on 05.12.15.
@@ -32,8 +32,8 @@ public class CirclePatternReconstructor extends PatternReconstructor {
         }
 
         @Override
-        public ColorMetric getColorMetric(ColorMetric colorMetric) {
-            return ColorMetric.BrightnessWithAlpha.INSTANCE;
+        public ColorSpace getColorSpace(ColorSpace defaultSpace) {
+            return ColorSpace.Brightness.INSTANCE_WITH_ALPHA;
         }
     }
 
@@ -68,7 +68,7 @@ public class CirclePatternReconstructor extends PatternReconstructor {
     }
 
     @Override
-    public <S> TileMatcher<S> makeMatcher(boolean useAlpha, ColorMetric metric) {
+    public <S> TileMatcher<S> makeMatcher(ColorSpace space) {
         return new TrivialMatcher<>();
     }
 
