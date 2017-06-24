@@ -20,12 +20,11 @@ import reconstruction.*;
 import reconstruction.workers.*;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
+import util.image.Color;
 import util.image.ColorMetric;
 import matching.TileMatcher;
 import reconstruction.pattern.PatternReconstructor;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -160,7 +159,7 @@ public class MosaicMaker<S> {
         }
         params.wantedColumns = columns;
         params.wantedRows = rows;
-        params.groundingColor = AbstractColor.TRANSPARENT;
+        params.groundingColor = Color.TRANSPARENT;
         return params;
     }
 

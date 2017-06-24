@@ -1,7 +1,5 @@
 package util.image;
 
-import data.image.AbstractColor;
-
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -9,6 +7,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
+ * A K-D-tree that uses colors of a given color space as keys. The space's dimension is used to separate each layer
+ * of tree nodes by hyperplanes in the cycling axis and creates an almost balanced tree using the approximated median.
  * Created by dd on 22.06.17.
  */
 public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.Node<D>> {
@@ -25,6 +25,12 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
         this.space = space;
     }
 
+    /**
+     * Removes the node belonging to the given data from the tree if present. The node's color and data must be equal
+     * for this to happen.
+     * @param data The data to remove.
+     * @return true only if a node got removed that fits the given data.
+     */
     public boolean removeNode(D data) {
         Optional<Node<D>> node = getExistingNode(data);
         if (node.isPresent()) {
@@ -47,6 +53,12 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
         return space.getDistance(color1, color2, axis);
     }
 
+    /**
+     * Returns the nearest neighbor data measured in the color space's metric to the given target color.
+     * This is a O(log(N)) lookup.
+     * @param targetColor The argb color to search.
+     * @return An empty optional if the tree is empty, else the best fitting node's data.
+     */
     public Optional<D> getNearestNeighbor(int targetColor) {
         Optional<Node<D>> bestOpt = findNode(root, targetColor, Node::isLeaf);
         Node<D> best;
@@ -60,11 +72,11 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
         }
         bestDist = colorDistance(targetColor, best.color);
 
-        // start at root again and check weather the circle around best with radius^2=bestDist intersects its area
+        // start at root again and check weather the circle around best with radius=bestDist intersects its area
         int axis;
         Node<D> current;
         double currentDist;
-        Stack<Node<D>> nextNodes = new Stack<>();
+        Stack<Node<D>> nextNodes = new Stack<>(); // use stacks for depth first search, faster than breath first
         Stack<Integer> nextAxis = new Stack<>();
         pushSearchNode(nextNodes, nextAxis, root, 0);
         final int dimension = space.getDimension();
@@ -81,12 +93,15 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
             if (bestDist < currentComponentDist) {
                 // completely on one side of the tree, other can be forgotten
                 if (isInLeftHalfplane) {
-                    // its in the left part, the right part can be discarded
                     pushSearchNode(nextNodes, nextAxis, current.leftChild, (axis + 1) % dimension);
                 } else {
                     pushSearchNode(nextNodes, nextAxis, current.rightChild, (axis + 1) % dimension);
                 }
             } else {
+                // circle intersects both sides.
+                // optimization to search the half plane first that contains the current node
+                // if there are many nodes that are well spread this makes it more likely to find a good one in this
+                // part
                 Node<D> first = current.rightChild, second = current.leftChild;
                 if (isInLeftHalfplane) {
                     first = current.leftChild;
@@ -147,10 +162,15 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
         return new NodesIterator<>(root);
     }
 
+    /**
+     * Returns the tree's size.
+     * @return Tree size.
+     */
     public int size() {
         return size;
     }
 
+    // iterates through the total tree starting at the root
     private static class NodesIterator<D extends Colorized> implements Iterator<Node<D>> {
 
         private final List<Node<D>> pending;
@@ -208,8 +228,8 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
         }
 
         String getColorString() {
-            return AbstractColor.alpha(color) + "," + AbstractColor.red(color) + ","
-                    + AbstractColor.green(color) + "," + AbstractColor.blue(color);
+            return Color.alpha(color) + "," + Color.red(color) + ","
+                    + Color.green(color) + "," + Color.blue(color);
         }
 
         @Override
@@ -292,6 +312,14 @@ public class KDColorTree<D extends Colorized> implements Iterable<KDColorTree.No
                         (int) (MEDIAN_ESTIMATION_SAMPLE_FRACTION * total));
     }
 
+    /**
+     * Creates a new KDColorTree for the given data and color space.
+     * @param random Random instance to use to approximate medians for creating the tree.
+     * @param data The data to use.
+     * @param space The space to use.
+     * @param <D> Some Colorized type, used to get color keys of the data instances.
+     * @return A new KDColorTree.
+     */
     public static<D extends Colorized> KDColorTree<D> make(Random random, Collection<D> data, ColorSpace space) {
         List<D> dataList = new ArrayList<>(data);
         double[] buffer = new double[getSampleSize(data.size())];

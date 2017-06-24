@@ -35,7 +35,6 @@ package util.image;
   */
 
 
-import java.awt.*;
 
 /**
  * <p><code>ColorUtilities</code> contains a set of tools to perform
@@ -45,31 +44,6 @@ import java.awt.*;
  */
 class ColorUtilities {
     private ColorUtilities() {
-    }
-
-    /**
-     * <p>Returns the HSL (Hue/Saturation/Luminance) equivalent of a given
-     * RGB color. All three HSL components are between 0.0 and 1.0.</p>
-     *
-     * @param color the RGB color to convert
-     * @return a new array of 3 floats corresponding to the HSL components
-     */
-    public static float[] RGBtoHSL(Color color) {
-        return RGBtoHSL(color.getRed(), color.getGreen(), color.getBlue(), null);
-    }
-
-    /**
-     * <p>Returns the HSL (Hue/Saturation/Luminance) equivalent of a given
-     * RGB color. All three HSL components are between 0.0 and 1.0.</p>
-     *
-     * @param color the RGB color to convert
-     * @param hsl a pre-allocated array of floats; can be null
-     * @return <code>hsl</code> if non-null, a new array of 3 floats otherwise
-     * @throws IllegalArgumentException if <code>hsl</code> has a length lower
-     *   than 3
-     */
-    public static float[] RGBtoHSL(Color color, float[] hsl) {
-        return RGBtoHSL(color.getRed(), color.getGreen(), color.getBlue(), hsl);
     }
 
     /**
@@ -175,19 +149,6 @@ class ColorUtilities {
         return hsl;
     }
 
-    /**
-     * <p>Returns the RGB equivalent of a given HSL (Hue/Saturation/Luminance)
-     * color.</p>
-     *
-     * @param h the hue component, between 0.0 and 1.0
-     * @param s the saturation component, between 0.0 and 1.0
-     * @param l the luminance component, between 0.0 and 1.0
-     * @return a new <code>Color</code> object equivalent to the HSL components
-     */
-    public static Color HSLtoRGB(float h, float s, float l) {
-        int[] rgb = HSLtoRGB(h, s, l, null);
-        return new Color(rgb[0], rgb[1], rgb[2]);
-    }
 
     /**
      * <p>Returns the RGB equivalent of a given HSL (Hue/Saturation/Luminance)

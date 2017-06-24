@@ -16,8 +16,6 @@
 package util.image;
 
 
-import data.image.AbstractColor;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,11 +41,6 @@ public abstract class ColorMetric {
         return list;
     }
 
-    @FunctionalInterface
-    private interface IntToIntFunction {
-        int apply(int param);
-    }
-
     public static class Euclid2 extends ColorMetric {	/**
          * This value indicates the greatest possible value for two colors
          * if alpha is not used. Equal to 3*255*255.
@@ -62,12 +55,10 @@ public abstract class ColorMetric {
         private Euclid2() {}
 
 
-        private static final IntToIntFunction[] AXIS_EXTRACTORS = new IntToIntFunction[] {AbstractColor::red,
-                AbstractColor::green, AbstractColor::blue, AbstractColor::alpha};
-
         @Override
         protected double getDistance(int color1, int color2, int axis) {
-            int diff = AXIS_EXTRACTORS[axis].apply(color1) - AXIS_EXTRACTORS[axis].apply(color2);
+            IntToIntFunction extractor = Color.RGBA_EXTRACTORS[axis];
+            int diff = extractor.apply(color1) -extractor.apply(color2);
             return diff * diff;
         }
 
@@ -97,8 +88,8 @@ public abstract class ColorMetric {
         private static final double GREATEST_VALUE_ALPHA = 4 * 255;
         private Absolute() {}
 
-        private static final IntToIntFunction[] AXIS_EXTRACTORS = new IntToIntFunction[] {AbstractColor::red,
-                AbstractColor::green, AbstractColor::blue, AbstractColor::alpha};
+        private static final IntToIntFunction[] AXIS_EXTRACTORS = new IntToIntFunction[] {Color::red,
+                Color::green, Color::blue, Color::alpha};
 
         @Override
         protected double getDistance(int color1, int color2, int axis) {
@@ -132,8 +123,8 @@ public abstract class ColorMetric {
 
         @Override
         protected double getDistance(int color1, int color2, int axis) {
-            return Math.abs(ColorAnalysisUtil.getGreyness(AbstractColor.red(color1), AbstractColor.green(color1), AbstractColor.blue(color1))
-                                    - ColorAnalysisUtil.getGreyness(AbstractColor.red(color2), AbstractColor.green(color2), AbstractColor.blue(color2)));
+            return Math.abs(ColorAnalysisUtil.getGreyness(Color.red(color1), Color.green(color1), Color.blue(color1))
+                                    - ColorAnalysisUtil.getGreyness(Color.red(color2), Color.green(color2), Color.blue(color2)));
         }
 
         @Override
@@ -158,9 +149,9 @@ public abstract class ColorMetric {
         @Override
         protected double getDistance(int color1, int color2, int axis) {
             if (axis == 0) {
-                return Math.abs(AbstractColor.red(color1) - AbstractColor.red(color2));
+                return Math.abs(Color.red(color1) - Color.red(color2));
             }
-            return  Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2));
+            return  Math.abs(Color.alpha(color1) - Color.alpha(color2));
         }
 
         @Override
@@ -186,9 +177,9 @@ public abstract class ColorMetric {
         @Override
         protected double getDistance(int color1, int color2, int axis) {
             if (axis == 0) {
-                return Math.abs(AbstractColor.green(color1) - AbstractColor.green(color2));
+                return Math.abs(Color.green(color1) - Color.green(color2));
             }
-            return  Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2));
+            return  Math.abs(Color.alpha(color1) - Color.alpha(color2));
         }
 
         @Override
@@ -213,9 +204,9 @@ public abstract class ColorMetric {
         @Override
         protected double getDistance(int color1, int color2, int axis) {
             if (axis == 0) {
-                return Math.abs(AbstractColor.blue(color1) - AbstractColor.blue(color2));
+                return Math.abs(Color.blue(color1) - Color.blue(color2));
             }
-            return  Math.abs(AbstractColor.alpha(color1) - AbstractColor.alpha(color2));
+            return  Math.abs(Color.alpha(color1) - Color.alpha(color2));
         }
 
         @Override

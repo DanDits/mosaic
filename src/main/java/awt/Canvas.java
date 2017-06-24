@@ -2,16 +2,13 @@ package awt;
 
 import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
-import data.image.AbstractColor;
+import util.image.Color;
 import data.image.PorterDuffMode;
-import net.coobird.thumbnailator.Thumbnailator;
-import net.coobird.thumbnailator.Thumbnails;
 import util.image.BlendComposite;
 
 import java.awt.*;
 import java.awt.geom.QuadCurve2D;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.Deque;
 import java.util.LinkedList;
 
@@ -24,7 +21,7 @@ public class Canvas implements AbstractCanvas {
     private final BufferedImage base;
     private final AbstractBitmap bitmap;
     private Graphics graphics;
-    private static final Color TRANSPARENT = new Color(0, 0, 0, 0); // rgba
+    private static final java.awt.Color TRANSPARENT = new java.awt.Color(0, 0, 0, 0); // rgba
 
     public Canvas(AbstractBitmap bitmap) {
         this.base = obtainImage(bitmap);
@@ -60,9 +57,9 @@ public class Canvas implements AbstractCanvas {
         return base;
     }
 
-    private Color argbToColor(int argb) {
-        return new Color(AbstractColor.red(argb), AbstractColor.green(argb), AbstractColor.blue(argb),
-                         AbstractColor.alpha(argb));
+    private java.awt.Color argbToColor(int argb) {
+        return new java.awt.Color(Color.red(argb), Color.green(argb), Color.blue(argb),
+                                  Color.alpha(argb));
     }
 
     @Override
@@ -114,7 +111,7 @@ public class Canvas implements AbstractCanvas {
     public void drawLine(int fromX, int fromY, int toX, int toY, int color) {
         ensureGraphics();
         Graphics2D graphics2D = (Graphics2D) graphics;
-        Color prevColor = graphics.getColor();
+        java.awt.Color prevColor = graphics.getColor();
         graphics.setColor(argbToColor(color));
         Stroke prevStroke = graphics2D.getStroke();
         graphics2D.setStroke(ONE_PIXEL_STROKE);
@@ -172,7 +169,7 @@ public class Canvas implements AbstractCanvas {
     public void drawQuadraticCurve(int fromX, int fromY, int overX, int overY, int toX, int toY, int color) {
         ensureGraphics();
         Graphics2D graphics2D = (Graphics2D) graphics;
-        Color prevColor = graphics2D.getColor();
+        java.awt.Color prevColor = graphics2D.getColor();
         graphics2D.setColor(argbToColor(color));
         QuadCurve2D q = new QuadCurve2D.Double();
         q.setCurve(fromX, fromY, overX, overY, toX, toY);

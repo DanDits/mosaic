@@ -16,7 +16,6 @@
 package util.image;
 
 import data.image.AbstractBitmap;
-import data.image.AbstractColor;
 
 /**
  * This class is an utility class. It offers RGB convertion
@@ -30,75 +29,19 @@ public final class ColorAnalysisUtil {
 	private ColorAnalysisUtil() {
 	}
 
-		/* To extract colors from ARGB int:
-		case RED:
-			return (rgb >> 16) & 0xFF;
-		case GREEN:
-			return (rgb >> 8) & 0xFF;
-		case BLUE:
-			return rgb & 0xFF;
-		case ALPHA:
-			return (rgb >> 24) & 0xFF;*/
-
 	public static int interpolateAbstractColorLinear(int fromAbstractColor, int toAbstractColor, float fraction) {
 		float antiFraction = 1.f - fraction;
-		return AbstractColor.argb((int) ((AbstractColor.alpha(toAbstractColor) * fraction + AbstractColor.alpha(fromAbstractColor) * antiFraction)),
-				(int) ((AbstractColor.red(toAbstractColor) * fraction + AbstractColor.red(fromAbstractColor) * antiFraction)),
-				(int) ((AbstractColor.green(toAbstractColor) * fraction + AbstractColor.green(fromAbstractColor) * antiFraction)),
-				(int) ((AbstractColor.blue(toAbstractColor) * fraction + AbstractColor.blue(fromAbstractColor) * antiFraction)));
+		return Color.argb((int) ((Color.alpha(toAbstractColor) * fraction + Color.alpha(fromAbstractColor) * antiFraction)),
+                          (int) ((Color.red(toAbstractColor) * fraction + Color.red(fromAbstractColor) * antiFraction)),
+                          (int) ((Color.green(toAbstractColor) * fraction + Color.green(fromAbstractColor) * antiFraction)),
+                          (int) ((Color.blue(toAbstractColor) * fraction + Color.blue(fromAbstractColor) * antiFraction)));
 	}
 
 	public static int colorMultiples(int color, float multiple) {
-		return AbstractColor.argb((int) (AbstractColor.alpha(color) * multiple),
-				(int) (AbstractColor.red(color) * multiple),
-				(int) (AbstractColor.green(color) * multiple),
-				(int) (AbstractColor.blue(color) * multiple));
-	}
-	
-	/**
-	 * Compresses the given values into a single integer. This integer could then be read by fromRGB() and the
-	 * given colors could be re-extracted.<br>
-	 * If a value is not in range from 0 to 255, the data will be corrupt.
-	 * @param red The red amount.
-	 * @param green The green amount.
-	 * @param blue The blue amount.
-	 * @param alpha The alpha amount.
-	 * @return A single integer storing the given information. Blue in the first 8 bits, 
-	 * green in the next 8 bits and red in 
-	 * the next 8 bits.
-	 */
-	public static int toRGB(int red, int green, int blue, int alpha) {
-		return blue | (green << 8) | (red << 16) | (alpha << 24);
-	}
-
-	
-	/**
-	 * Returns the standard norm of the given color in the 3 or 4 dimensional
-	 * color space. This is the distance to the color
-	 * (0,0,0(,0)) in the color space.
-	 * @param rgb The RGBA color to check.
-	 * @param useAlpha If <code>true</code> the alpha will be taken into account and
-	 * the distance will be measured in 4 dimensional color space.
-	 * @return The distance of this rgb color to the zero color (black).
-	 */
-	public static double norm(int rgb, boolean useAlpha) {
-		double result = 0;
-		int currColValue;
-
-        currColValue = AbstractColor.red(rgb);
-        result += currColValue * currColValue;
-
-        currColValue = AbstractColor.green(rgb);
-        result += currColValue * currColValue;
-
-        currColValue = AbstractColor.blue(rgb);
-        result += currColValue * currColValue;
-
-        if (useAlpha) {
-            currColValue = AbstractColor.red(rgb);
-            result += currColValue * currColValue;
-        }
-		return Math.sqrt(result);
+		return Color.argb((int) (Color.alpha(color) * multiple),
+                          (int) (Color.red(color) * multiple),
+                          (int) (Color.green(color) * multiple),
+                          (int) (Color.blue(color) * multiple));
 	}
 
     public static double factorToSimilarityBound(double factor) {
@@ -133,26 +76,26 @@ public final class ColorAnalysisUtil {
 		}
 		long newCol;
 		//red
-		currColValue1 = AbstractColor.red(rgb1);
-		currColValue2 = AbstractColor.red(rgb2);
+		currColValue1 = Color.red(rgb1);
+		currColValue2 = Color.red(rgb2);
 		newCol = (currColValue1 * pixels1 + currColValue2 * pixels2) / totalPixels;
 		red = (int) newCol;
 		//green
-		currColValue1 = AbstractColor.green(rgb1);
-		currColValue2 = AbstractColor.green(rgb2);
+		currColValue1 = Color.green(rgb1);
+		currColValue2 = Color.green(rgb2);
 		newCol = (currColValue1 * pixels1 + currColValue2 * pixels2) / totalPixels;
 		green = (int) newCol;
 		//blue
-		currColValue1 = AbstractColor.blue(rgb1);
-		currColValue2 = AbstractColor.blue(rgb2);
+		currColValue1 = Color.blue(rgb1);
+		currColValue2 = Color.blue(rgb2);
 		newCol = (currColValue1 * pixels1 + currColValue2 * pixels2) / totalPixels;
 		blue = (int) newCol;
 		//alpha
-		currColValue1 = AbstractColor.alpha(rgb1);
-		currColValue2 = AbstractColor.alpha(rgb2);
+		currColValue1 = Color.alpha(rgb1);
+		currColValue2 = Color.alpha(rgb2);
 		newCol = (currColValue1 * pixels1 + currColValue2 * pixels2) / totalPixels;
 		alpha = (int) newCol;
-		return ColorAnalysisUtil.toRGB(red, green, blue, alpha);
+		return Color.argb(alpha, red, green, blue);
 	}
 
 	public static int getAverageColor(AbstractBitmap image) {
@@ -162,29 +105,16 @@ public final class ColorAnalysisUtil {
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				int rgba = image.getPixel(x, y);
-				averageRed += AbstractColor.red(rgba);
-				averageGreen += AbstractColor.green(rgba);
-				averageBlue += AbstractColor.blue(rgba);
-				averageAlpha += AbstractColor.alpha(rgba);
+				averageRed += Color.red(rgba);
+				averageGreen += Color.green(rgba);
+				averageBlue += Color.blue(rgba);
+				averageAlpha += Color.alpha(rgba);
 			}
 		}
 		long pixels = width * height;
-		return AbstractColor.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
+		return Color.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
 	}
 
-	public static String visualizeRGBDecimal(int argb, boolean useAlpha) {
-		StringBuilder builder = new StringBuilder(15);
-		if (useAlpha) {
-			builder.append(AbstractColor.alpha(argb));
-			builder.append(',');
-		}
-		builder.append(AbstractColor.red(argb))
-				.append(',')
-			   .append(AbstractColor.green(argb))
-			   .append(',')
-			   .append(AbstractColor.blue(argb));
-		return builder.toString();
-	}
 
     @FunctionalInterface
 	public interface ColoredCoordinates {
@@ -196,63 +126,22 @@ public final class ColorAnalysisUtil {
         for (int x = fromX; x < toX; x++) {
             for (int y = fromY; y < toY; y++) {
                 int rgba = colorCoords.getColorOfCoordinates(x, y);
-                averageRed += AbstractColor.red(rgba);
-                averageGreen += AbstractColor.green(rgba);
-                averageBlue += AbstractColor.blue(rgba);
-                averageAlpha += AbstractColor.alpha(rgba);
+                averageRed += Color.red(rgba);
+                averageGreen += Color.green(rgba);
+                averageBlue += Color.blue(rgba);
+                averageAlpha += Color.alpha(rgba);
             }
         }
         long pixels = (toX - fromX) * (toY - fromY);
         if (pixels <= 0L) {
             pixels = 1L;
         }
-        return AbstractColor.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
+        return Color.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
 
     }
 
 	public static int getAverageColor(AbstractBitmap image, int fromX, int toX, int fromY, int toY) {
 		return getAverageColor(image::getPixel, fromX, toX, fromY, toY);
-	}
-
-	/**
-	 * Returns a String representation of the given average color in HEX format, optionally with the alpha.
-	 * @param rgb The rgb to visualize.
-	 * @param useAlpha If alpha value should be visualized.
-	 * @return A formatted HEX String visualizing the given rgb.
-	 */
-	public static String visualizeRGB(int rgb, boolean useAlpha) {
-		String output = "";
-		String curr;
-		if (useAlpha) {
-			curr = Integer.toHexString(AbstractColor.alpha(rgb)).toUpperCase();
-			if (curr.length() == 1) {
-				output += "0" + curr;
-			} else {
-				output += curr;
-			}	
-			output += " ";
-		}
-		curr = Integer.toHexString(AbstractColor.red(rgb)).toUpperCase();
-		if (curr.length() == 1) {
-			output += "0" + curr;
-		} else {
-			output += curr;
-		}
-		output += " ";
-		curr = Integer.toHexString(AbstractColor.green(rgb)).toUpperCase();
-		if (curr.length() == 1) {
-			output += "0" + curr;
-		} else {
-			output += curr;
-		}
-		output += " ";
-		curr = Integer.toHexString(AbstractColor.blue(rgb)).toUpperCase();
-		if (curr.length() == 1) {
-			output += "0" + curr;
-		} else {
-			output += curr;
-		}
-		return output;
 	}
 	
 	

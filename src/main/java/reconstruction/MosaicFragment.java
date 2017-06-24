@@ -16,7 +16,7 @@
 package reconstruction;
 
 
-import util.image.ColorAnalysisUtil;
+import util.image.Color;
 import util.image.Colorized;
 
 /**
@@ -75,7 +75,7 @@ public class MosaicFragment implements Colorized {
 	@Override
 	public String toString() {
 		return "Fragment (hxw=" + this.height + "x" + this.width 
-				+ " rgb=" + ColorAnalysisUtil.visualizeRGB(this.averageRGB, false) + ")";
+				+ " rgb=" + Color.visualize(this.averageRGB, false, false) + ")";
 	}
 
 	@Override

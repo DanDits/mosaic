@@ -16,16 +16,16 @@
 package reconstruction.workers;
 
 
-import java.util.Arrays;
-import java.util.Random;
-
 import data.image.AbstractBitmap;
-import data.image.AbstractColor;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.PercentProgressListener;
+import util.image.Color;
 import util.image.ColorMetric;
+
+import java.util.Arrays;
+import java.util.Random;
 
 /**
  * 'Better' version of AutoLayerReconstructor using the k-means algorithm
@@ -184,11 +184,11 @@ public class FixedLayerReconstructor extends Reconstructor {
             for (int i = 0; i < pixelColors.length; i++) {
                 int cluster = mPixelClusterNumber[i];
                 int color = pixelColors[i];
-                clusterCenterRed[cluster] += AbstractColor.red(color);
-                clusterCenterGreen[cluster] += AbstractColor.green(color);
-                clusterCenterBlue[cluster] += AbstractColor.blue(color);
+                clusterCenterRed[cluster] += Color.red(color);
+                clusterCenterGreen[cluster] += Color.green(color);
+                clusterCenterBlue[cluster] += Color.blue(color);
                 if (mUseAlpha) {
-                    clusterCenterAlpha[cluster] += AbstractColor.alpha(color);
+                    clusterCenterAlpha[cluster] += Color.alpha(color);
                 }
                 clusterSize[cluster]++;
             }
@@ -199,7 +199,7 @@ public class FixedLayerReconstructor extends Reconstructor {
                     int green = clusterCenterGreen[cluster] / size;
                     int blue = clusterCenterBlue[cluster] / size;
                     int alpha = mUseAlpha ? clusterCenterAlpha[cluster] / size : 255;
-                    clusterCenters[cluster] = AbstractColor.argb(alpha, red, green, blue);
+                    clusterCenters[cluster] = Color.argb(alpha, red, green, blue);
                 }
             }
             progress.onProgressUpdate((int) (PercentProgressListener.PROGRESS_COMPLETE * redistributionCount / (double) maxRedistributions));

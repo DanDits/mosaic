@@ -3,7 +3,7 @@ package bitmapMatrix;
 
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
-import data.image.AbstractColor;
+import util.image.Color;
 import util.jama.Matrix;
 
 /**
@@ -23,14 +23,14 @@ public class SplitRgbBitmap implements BitmapMatrix {
                 final int color = bitmap.getPixel(j, i);
                 if (mTransposeRequired) {
                     int column = i * 3;
-                    matrix.set(j, column, AbstractColor.red(color));
-                    matrix.set(j, column + 1, AbstractColor.green(color));
-                    matrix.set(j, column + 2, AbstractColor.blue(color));
+                    matrix.set(j, column, Color.red(color));
+                    matrix.set(j, column + 1, Color.green(color));
+                    matrix.set(j, column + 2, Color.blue(color));
                 } else {
                     int row = i * 3;
-                    matrix.set(row, j, AbstractColor.red(color));
-                    matrix.set(row + 1, j, AbstractColor.green(color));
-                    matrix.set(row + 2, j, AbstractColor.blue(color));
+                    matrix.set(row, j, Color.red(color));
+                    matrix.set(row + 1, j, Color.green(color));
+                    matrix.set(row + 2, j, Color.blue(color));
                 }
             }
         }
@@ -53,15 +53,15 @@ public class SplitRgbBitmap implements BitmapMatrix {
             for (int x = 0; x < result.getWidth(); x++) {
                 int color;
                 if (mTransposeRequired) {
-                    color = AbstractColor.argb(255,
-                            getAbstractColorValue(y, x * 3),
-                            getAbstractColorValue(y, x * 3 + 1),
-                            getAbstractColorValue(y, x * 3 + 2));
+                    color = Color.argb(255,
+                                       getAbstractColorValue(y, x * 3),
+                                       getAbstractColorValue(y, x * 3 + 1),
+                                       getAbstractColorValue(y, x * 3 + 2));
                 } else {
-                    color = AbstractColor.argb(255,
-                            getAbstractColorValue(y * 3, x),
-                            getAbstractColorValue(y * 3 + 1, x),
-                            getAbstractColorValue(y * 3 + 2, x));
+                    color = Color.argb(255,
+                                       getAbstractColorValue(y * 3, x),
+                                       getAbstractColorValue(y * 3 + 1, x),
+                                       getAbstractColorValue(y * 3 + 2, x));
                 }
                 result.setPixel(x, y, color);
             }

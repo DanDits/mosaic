@@ -3,7 +3,7 @@ package bitmapMatrix;
 import data.image.AbstractBitmap;
 
 import data.image.AbstractBitmapFactory;
-import data.image.AbstractColor;
+import util.image.Color;
 import util.jama.Matrix;
 
 /**
@@ -59,15 +59,15 @@ public class ARGBMatrix implements BitmapMatrix {
     private static final long OFFSET_FACTOR = 512; // at least 256 since this is (2^8) the
     // number of different values per color
     private static double pixelToValue(int pixelARGB) {
-        return (double) (AbstractColor.alpha(pixelARGB) * OFFSET_FACTOR * OFFSET_FACTOR * OFFSET_FACTOR
-                + AbstractColor.red(pixelARGB) * OFFSET_FACTOR * OFFSET_FACTOR
-                + AbstractColor.green(pixelARGB) * OFFSET_FACTOR
-                + AbstractColor.blue(pixelARGB));
+        return (double) (Color.alpha(pixelARGB) * OFFSET_FACTOR * OFFSET_FACTOR * OFFSET_FACTOR
+                + Color.red(pixelARGB) * OFFSET_FACTOR * OFFSET_FACTOR
+                + Color.green(pixelARGB) * OFFSET_FACTOR
+                + Color.blue(pixelARGB));
     }
 
     private static int valueToPixel(double value) {
         long valueL = (long) value;
-        return AbstractColor.argb(
+        return Color.argb(
                 toColorValue((valueL / (OFFSET_FACTOR * OFFSET_FACTOR * OFFSET_FACTOR)) %
                                 OFFSET_FACTOR),
                 toColorValue((valueL / (OFFSET_FACTOR * OFFSET_FACTOR)) % OFFSET_FACTOR),

@@ -1,7 +1,5 @@
 package util.image;
 
-import data.image.AbstractColor;
-
 /**
  * Created by dd on 23.06.17.
  */
@@ -59,13 +57,13 @@ public abstract class ColorSpace {
             checkAxis(axis);
             switch (axis) {
                 case 0:
-                    return AbstractColor.red(color);
+                    return Color.red(color);
                 case 1:
-                    return AbstractColor.green(color);
+                    return Color.green(color);
                 case 2:
-                    return AbstractColor.blue(color);
+                    return Color.blue(color);
                 case 3:
-                    return AbstractColor.alpha(color);
+                    return Color.alpha(color);
                 default:
                     throw new IllegalArgumentException("Illegal axis " + axis);
             }

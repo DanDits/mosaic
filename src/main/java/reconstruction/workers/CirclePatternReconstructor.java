@@ -3,6 +3,7 @@ package reconstruction.workers;
 import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
+import util.image.Color;
 import reconstruction.ReconstructionParameters;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
@@ -121,6 +122,6 @@ public class CirclePatternReconstructor extends PatternReconstructor {
         // use higher k for less grey values
         brightness = 1. / (1. + Math.exp(-5. * (brightness - averageBrightness)));
         int grey = (int) (255. * brightness);
-        return ColorAnalysisUtil.toRGB(grey, grey, grey, 255);
+        return Color.rgb(grey, grey, grey);
     }
 }

@@ -71,7 +71,6 @@ public class FileMosaicAnalyzer {
                     AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(file).createBitmap();
                     if (bitmap != null) {
                         int color = ColorAnalysisUtil.getAverageColor(bitmap);
-                        System.out.println("Image " + file + " got color " + ColorAnalysisUtil.visualizeRGB(color, true));
                         tiles.add(new FileMosaicTile(file.getCanonicalPath(), color, bitmap.getWidth(), bitmap.getHeight()));
                     } // else not an image file
                 } catch (IOException e) {

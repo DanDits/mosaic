@@ -4,10 +4,9 @@ import data.image.*;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
+import util.image.Color;
 import util.image.ColorAnalysisUtil;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -165,10 +164,10 @@ public class PuzzleReconstructor extends Reconstructor {
         drawNoseSegment(canvas, secondPartEndX, noseHeight - secondPartEndY - 1, thirdPartMiddleX, noseHeight - thirdPartMiddleY,
                         thirdPartEndX, noseHeight - thirdPartEndY - 1, -1, 0);
 
-        canvas.floodFill(0, 0, AbstractColor.TRANSPARENT);
-        canvas.floodFill(0, noseHeight - 1, AbstractColor.TRANSPARENT);
-        canvas.floodFill(noseWidth - 1, 0, AbstractColor.TRANSPARENT);
-        canvas.floodFill(noseWidth - 1, noseHeight - 1, AbstractColor.TRANSPARENT);
+        canvas.floodFill(0, 0, Color.TRANSPARENT);
+        canvas.floodFill(0, noseHeight - 1, Color.TRANSPARENT);
+        canvas.floodFill(noseWidth - 1, 0, Color.TRANSPARENT);
+        canvas.floodFill(noseWidth - 1, noseHeight - 1, Color.TRANSPARENT);
         AbstractBitmap nose = canvas.obtainImage();
         if (!horizontal) {
             return nose.getRotatedCopy(90);

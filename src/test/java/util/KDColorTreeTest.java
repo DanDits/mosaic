@@ -1,6 +1,6 @@
 package util;
 
-import data.image.AbstractColor;
+import util.image.Color;
 import data.mosaic.MosaicTile;
 import matching.MockTile;
 import matching.workers.SimpleLinearTileMatcher;
@@ -34,7 +34,7 @@ public class KDColorTreeTest {
         Random rnd = new Random(1337);
         for (int i = 0; i < amount - 3; i++) {
             tiles.add(new MockTile("S" + i,
-                                   AbstractColor.rgb(rnd.nextInt(255), rnd.nextInt(255), rnd.nextInt(255)),
+                                   Color.rgb(rnd.nextInt(255), rnd.nextInt(255), rnd.nextInt(255)),
                                    5, 5));
         }
         tiles.add(new MockTile("D1", 0xFFAAAA00, 5, 5));
@@ -83,7 +83,7 @@ public class KDColorTreeTest {
         for (int red = 0; red <= 255; red += delta) {
             for (int green = 0; green <= 255; green += delta) {
                 for (int blue = 0; blue <= 255; blue += delta) {
-                    int color = AbstractColor.rgb(red, green, blue);
+                    int color = Color.rgb(red, green, blue);
                     Optional<MosaicTile<String>> tile = tree.getNearestNeighbor(color);
                     assertTrue(tile.isPresent());
                 }
@@ -100,7 +100,7 @@ public class KDColorTreeTest {
         for (int red = 0; red <= 255; red += delta) {
             for (int green = 0; green <= 255; green += delta) {
                 for (int blue = 0; blue <= 255; blue += delta) {
-                    int color = AbstractColor.rgb(red, green, blue);
+                    int color = Color.rgb(red, green, blue);
                     Optional<MosaicTile<String>> tile1 = matcher.calculateBestMatch(new MosaicFragment(5, 5, color));
                     assertTrue(tile1.isPresent());
                     Optional<MosaicTile<String>> tile2 = tree.getNearestNeighbor(color);
