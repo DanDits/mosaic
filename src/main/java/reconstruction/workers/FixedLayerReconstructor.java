@@ -21,15 +21,13 @@ import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.PercentProgressListener;
-import util.image.Color;
 import util.image.ColorSpace;
 
 import java.util.Arrays;
 import java.util.Random;
 
 /**
- * 'Better' version of AutoLayerReconstructor using the k-means algorithm
- * with the given ColorMetric. In contrast to the other layer reconstructor
+ * 'Better' version of AutoLayerReconstructor using the k-means algorithm. In contrast to the other layer reconstructor
  * the amount of layers needs to be fixed and given though. Results are cleaner for the same run speed
  * and similar parameter settings, though the parameter needs to be determined by the user('s preference)
  * and cannot be set to an arbitrary constant.
@@ -83,7 +81,7 @@ public class FixedLayerReconstructor extends Reconstructor {
         }
     }
 
-    public FixedLayerReconstructor(FixedLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
+    private FixedLayerReconstructor(FixedLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
         space = parameters.space;
         init(parameters.getBitmapSource(), parameters.layersCount, parameters.progress);
@@ -119,7 +117,7 @@ public class FixedLayerReconstructor extends Reconstructor {
 
         // init k-means++ style by preferring centers that are further away from the last center
         clusterCenters[0] = pixelColors[rand.nextInt(pixelColors.length)];
-        final double maxDist = space.getMetric().maxValue(space.usesAlpha());
+        final double maxDist = space.getMaxDistance();
         for (int cluster = 1; cluster < clusterCount; cluster++) {
             clusterCenters[cluster] = pixelColors[rand.nextInt(pixelColors.length)];
             for (int i = 0; i < pixelColors.length; i++) {
@@ -134,10 +132,7 @@ public class FixedLayerReconstructor extends Reconstructor {
             }
         }
 
-        int[] clusterCenterRed = new int[clusterCount];
-        int[] clusterCenterGreen = new int[clusterCount];
-        int[] clusterCenterBlue = new int[clusterCount];
-        int[] clusterCenterAlpha = space.usesAlpha() ? new int[clusterCount] : null;
+        int[][] valuesPerDimension = new int[space.getDimension()][clusterCount];
         int[] clusterSize = new int[clusterCount];
         int redistributionCount = 0;
         int maxRedistributions = MAX_RECALCULATIONS_BASE + MAX_RECALCULATIONS_LINEAR_GROWTH * clusterCount;
@@ -170,32 +165,26 @@ public class FixedLayerReconstructor extends Reconstructor {
             redistributionCount++;
 
             // recalculate centers
-            Arrays.fill(clusterCenterRed, 0);
-            Arrays.fill(clusterCenterGreen, 0);
-            Arrays.fill(clusterCenterBlue, 0);
-            if (space.usesAlpha()) {
-                Arrays.fill(clusterCenterAlpha, 0);
+            for (int[] aValuesPerDimension : valuesPerDimension) {
+                Arrays.fill(aValuesPerDimension, 0);
             }
             Arrays.fill(clusterSize, 0);
             for (int i = 0; i < pixelColors.length; i++) {
                 int cluster = mPixelClusterNumber[i];
                 int color = pixelColors[i];
-                clusterCenterRed[cluster] += Color.red(color);
-                clusterCenterGreen[cluster] += Color.green(color);
-                clusterCenterBlue[cluster] += Color.blue(color);
-                if (space.usesAlpha()) {
-                    clusterCenterAlpha[cluster] += Color.alpha(color);
+                for (int j = 0; j < valuesPerDimension.length; j++) {
+                    valuesPerDimension[j][cluster] += space.getValue(color, j);
                 }
                 clusterSize[cluster]++;
             }
+            double[] valuesPerCluster = new double[valuesPerDimension.length];
             for (int cluster = 0; cluster < clusterCount; cluster++) {
                 int size = clusterSize[cluster];
                 if (size > 0) {
-                    int red = clusterCenterRed[cluster] / size;
-                    int green = clusterCenterGreen[cluster] / size;
-                    int blue = clusterCenterBlue[cluster] / size;
-                    int alpha = space.usesAlpha() ? clusterCenterAlpha[cluster] / size : 255;
-                    clusterCenters[cluster] = Color.argb(alpha, red, green, blue);
+                    for (int i = 0; i < valuesPerCluster.length; i++) {
+                        valuesPerCluster[i] = valuesPerDimension[i][cluster] / size;
+                    }
+                    clusterCenters[cluster] = space.valuesToArgb(valuesPerCluster);
                 }
             }
             progress.onProgressUpdate((int) (PercentProgressListener.PROGRESS_COMPLETE * redistributionCount / (double) maxRedistributions));

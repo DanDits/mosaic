@@ -98,7 +98,7 @@ public class AutoLayerReconstructor extends Reconstructor {
                 colors[x + y * width] = source.getPixel(x, y);
             }
         }
-        final double maxSim = space.getMetric().maxValue(space.usesAlpha());
+        final double maxSim = space.getMaxDistance();
         final double sim = ColorAnalysisUtil.factorToSimilarityBound(factor);
         final int simBound = (int) (sim * maxSim);
         final int alreadyReachedMarker = Integer.MIN_VALUE;

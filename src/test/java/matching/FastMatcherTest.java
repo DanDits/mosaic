@@ -10,6 +10,7 @@ import util.image.ColorSpace;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
 
@@ -46,5 +47,56 @@ public class FastMatcherTest {
         assertTrue(matcher.cacheEnabled());
     }
 
-    //TODO implement other tests
+    @Test
+    public void testExactMatch() {
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new FastMatcher<>(tiles, space);
+        Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF0000));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S1", bestMatch.get().getSource());
+
+        bestMatch = matcher.getBestMatch(getFragmentForColor(0xAAFF0000));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S2", bestMatch.get().getSource());
+
+        bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFFFF00));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S3", bestMatch.get().getSource());
+
+        bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF00FF));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S4", bestMatch.get().getSource());
+    }
+
+    @Test
+    public void testRemoveTile() {
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new FastMatcher<>(tiles, space);
+        Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF0000));
+        assertTrue(bestMatch.isPresent());
+        assertEquals(5, matcher.getUsedTilesCount());
+        assertTrue(matcher.removeTile(bestMatch.get()));
+        assertEquals(4, matcher.getUsedTilesCount());
+        assertEquals(5, tiles.size());
+    }
+
+    @Test
+    public void testInexactMatch() {
+        ColorSpace space = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
+        TileMatcher<String> matcher = new FastMatcher<>(tiles, space);
+        Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFA0105));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S1", bestMatch.get().getSource());
+
+        bestMatch = matcher.getBestMatch(getFragmentForColor(0xAAFF00FE));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S5", bestMatch.get().getSource());
+
+        // this also tests if the hashed entry to the previously given color has been properly reset
+        matcher.setUseAlpha(false);
+        assertFalse(matcher.usesAlpha());
+        bestMatch = matcher.getBestMatch(getFragmentForColor(0xAAFF00FE));
+        assertTrue(bestMatch.isPresent());
+        assertEquals("S4", bestMatch.get().getSource());
+    }
 }

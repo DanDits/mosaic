@@ -25,7 +25,6 @@ import reconstruction.workers.*;
 import util.MultistepPercentProgressListener;
 import util.PercentProgressListener;
 import util.image.Color;
-import util.image.ColorMetric;
 import util.image.ColorSpace;
 
 import java.util.Optional;

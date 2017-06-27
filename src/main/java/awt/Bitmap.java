@@ -1,16 +1,14 @@
 package awt;
 
+import data.image.AbstractBitmap;
+import net.coobird.thumbnailator.Thumbnails;
+
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.IOException;
-
-import data.image.AbstractBitmap;
-import data.image.AbstractBitmapFactory;
-import net.coobird.thumbnailator.Thumbnails;
-
-import javax.imageio.ImageIO;
 
 /**
  * Created by dd on 03.06.17.
@@ -78,19 +76,22 @@ public class Bitmap implements AbstractBitmap {
 
     @Override
     public boolean saveToFile(File file) throws IOException {
-        String type;
-        switch (file.getName().toLowerCase()) {
-            case "jpg":
-            case "jpeg":
-                type = "jpg";
-                break;
-            case "gif":
-                type = "gif";
-                break;
-            default:
-            case "png":
-                type = "png";
-                break;
+        String type = "png";
+        int dotIndex = file.getName().lastIndexOf(".");
+        if (dotIndex >= 0) {
+            switch (file.getName().substring(dotIndex).toLowerCase()) {
+                case "jpg":
+                case "jpeg":
+                    type = "jpg";
+                    break;
+                case "gif":
+                    type = "gif";
+                    break;
+                default:
+                case "png":
+                    type = "png";
+                    break;
+            }
         }
         return ImageIO.write(image, type, file);
     }

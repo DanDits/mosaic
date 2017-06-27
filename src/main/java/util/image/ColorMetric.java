@@ -25,8 +25,8 @@ import java.util.List;
 public abstract class ColorMetric {
 
     protected abstract double getDistance(int color1, int color2, int axis);
-    public abstract double getDistance(int color1, int color2, boolean useAlpha);
-    public abstract double maxValue(boolean useAlpha);
+    abstract double getDistance(int color1, int color2, boolean useAlpha);
+    abstract double maxValue(boolean useAlpha);
 
     public static List<ColorMetric> makeAll() {
         List<ColorMetric> list = new ArrayList<>(8);

@@ -157,6 +157,13 @@ public final class ColorAnalysisUtil {
         return 1. +((rgb >> 24) & 0xFF) * (-1./255. + 0.299/65025.0 * ((rgb >> 16) & 0xFF) + 0.587/65025.0 * ((rgb >> 8) & 0xFF) + 0.114/65025.0 * (rgb & 0xFF));
 	}
 
+	public static int getArgbForBrightness(double brightness) {
+	    // there is no unique solution to (0.299*red+0.587*green+0.114*blue)/255=brightness
+        // so we assume g=red=green=blue and solve for g which is g=brightness*255
+	    int greyness = (int) (brightness * 255);
+	    return Color.rgb(greyness, greyness, greyness);
+    }
+
     /**
      * Calculates the brightness of the given rgb value as a human would recognize it.
      * @param rgb The rgb value.

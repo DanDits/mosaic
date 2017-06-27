@@ -177,7 +177,7 @@ public class MultiRectReconstructor extends RectReconstructor {
 
     private boolean checkSubRect(int baseColor, double simBound, int startRow, int startColumn, int endRow, int endColumn) {
 
-        final double maxSim = space.getMetric().maxValue(space.usesAlpha());
+        final double maxSim = space.getMaxDistance();
         for (int r = startRow; r < endRow; r++) {
             for (int c = startColumn; c < endColumn; c++) {
                 if (rectIsUsed[r][c]) {

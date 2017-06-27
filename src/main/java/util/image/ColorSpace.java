@@ -29,6 +29,12 @@ public abstract class ColorSpace {
 
     public abstract ColorSpace getInstanceByAlpha(boolean useAlpha);
 
+    public double getMaxDistance() {
+        return getMetric().maxValue(usesAlpha());
+    }
+
+    public abstract int valuesToArgb(double[] values);
+
     public static class RgbAbsolute extends RgbEuclid {
 
         public static final ColorSpace INSTANCE_WITH_ALPHA = new RgbAbsolute(true);
@@ -112,6 +118,17 @@ public abstract class ColorSpace {
             }
             return INSTANCE_WITHOUT_ALPHA;
         }
+
+        @Override
+        public int valuesToArgb(double[] values) {
+            if (values == null || values.length != getDimension()) {
+                throw new IllegalArgumentException("Too little values to get argb.");
+            }
+            if (useAlpha) {
+                return Color.argb((int) values[3], (int) values[0], (int) values[1], (int) values[2]);
+            }
+            return Color.rgb((int) values[0], (int) values[1], (int) values[2]);
+        }
     }
 
 
@@ -168,6 +185,14 @@ public abstract class ColorSpace {
                 return INSTANCE_WITH_ALPHA;
             }
             return INSTANCE_WITHOUT_ALPHA;
+        }
+
+        @Override
+        public int valuesToArgb(double[] values) {
+            if (values == null || values.length != getDimension()) {
+                throw new IllegalArgumentException("Too little values to get argb.");
+            }
+            return ColorAnalysisUtil.getArgbForBrightness(values[0]);
         }
     }
 }
