@@ -77,7 +77,7 @@ public class ResolutionMatcher<S> extends TileMatcher<S> {
     }
 
     @Override
-    public boolean removeTile(MosaicTile<S> toRemove) {
+    public boolean doRemoveTile(MosaicTile<S> toRemove) {
         return tiles.remove(toRemove);
     }
 

@@ -45,4 +45,10 @@ public class LruCache<K, V> extends LinkedHashMap<K, V> implements Cachable<K, V
     public void removeFromCache(K key) {
         remove(key);
     }
+
+    @Override
+    public void removeValueFromCache(V value) {
+        // we do a brute force search as we cannot even be sure the value is hashable
+        keySet().removeIf(key -> get(key).equals(value));
+    }
 }

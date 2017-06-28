@@ -15,15 +15,15 @@
 
 package data.mosaic;
 
+import assembling.ProgressCallback;
+import assembling.ReconstructorAssemblor;
 import data.image.*;
 import matching.TileMatcher;
-import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.workers.*;
 import util.MultistepPercentProgressListener;
-import util.PercentProgressListener;
 import util.image.Color;
 import util.image.ColorSpace;
 
@@ -40,9 +40,6 @@ public class MosaicMaker<S> {
 	private ColorSpace space;
 	private boolean cutResultToSourceAlpha;
 
-    public interface ProgressCallback extends PercentProgressListener {
-        boolean isCancelled();
-    }
 
     private static class MultiStepPercentProgressCallback extends MultistepPercentProgressListener implements ProgressCallback {
 
@@ -161,8 +158,9 @@ public class MosaicMaker<S> {
         }
         AbstractBitmap source = parameters.getBitmapSource();
         PatternReconstructor reconstructor = parameters.makeReconstructor();
-        return finishMosaic(source, make(reconstructor.makeMatcher(parameters.getColorSpace(space)),
-                                         reconstructor.makeSource(), reconstructor, callback));
+        Optional<AbstractBitmap> bmp = ReconstructorAssemblor.make(reconstructor.makeMatcher(parameters.getColorSpace(space)),
+                                                                   reconstructor.makeSource(), reconstructor, callback);
+        return bmp.map(abstractBitmap -> finishMosaic(source, abstractBitmap)).orElse(null);
     }
 
     public AbstractBitmap make(ReconstructionParameters parameters, ProgressCallback callback) throws ReconstructionParameters.IllegalParameterException {
@@ -171,55 +169,11 @@ public class MosaicMaker<S> {
         }
         AbstractBitmap source = parameters.getBitmapSource();
         Reconstructor reconstructor = parameters.makeReconstructor();
-        return finishMosaic(source, make(mMatcher, mBitmapSource, reconstructor, callback));
+        Optional<AbstractBitmap> bmp = ReconstructorAssemblor.make(mMatcher, mBitmapSource, reconstructor, callback);
+        return bmp.map(abstractBitmap -> finishMosaic(source, abstractBitmap)).orElse(null);
     }
 
-	private static <S>AbstractBitmap make(TileMatcher<S> matcher, BitmapSource<S> source, Reconstructor
-            reconstructor, ProgressCallback progress) {
-		if (reconstructor == null) {
-			throw new IllegalArgumentException("No reconstructor given to make mosaic.");
-		}
 
-		while (!reconstructor.hasAll() && (progress == null || !progress.isCancelled())) {
-			MosaicFragment nextFrag = reconstructor.nextFragment();
-			AbstractBitmap nextImage;
-			do {
-				Optional<? extends MosaicTile<S>> tileCandidate = matcher.getBestMatch(nextFrag);
-				if (!tileCandidate.isPresent()) {
-                    // matcher has no more tiles!
-                    System.err.println("Matcher out of tiles!");
-                    return null;
-                }
-                MosaicTile<S> tile = tileCandidate.get();
-				nextImage = source.getBitmap(tile, nextFrag.getWidth(), nextFrag.getHeight());
-
-				if (nextImage == null) {
-					// no image?! maybe the image (file) got invalid (image deleted, damaged,...)
-					// delete it from matcher
-					// and cache and search again
-					matcher.removeTile(tile);
-				}
-				// will terminate since the matcher will lose a tile each iteration or find a valid one, 
-				// if no tile found anymore, returns false
-			} while (nextImage == null);
-
-			if (!reconstructor.giveNext(nextImage)) {
-				// reconstructor did not accept the give image, but it was valid and of correct dimension,
-                System.err.println("Reconstructor did not accept given image.");
-                return null;
-			}
-            if (progress != null) {
-                progress.onProgressUpdate(reconstructor.estimatedProgressPercent());
-            }
-		}
-		if (progress != null && !progress.isCancelled()) {
-			progress.onProgressUpdate(PercentProgressListener.PROGRESS_COMPLETE);
-		}
-        if (progress != null && progress.isCancelled()) {
-            return null;
-        }
-		return reconstructor.getReconstructed();
-	}
 
 
 }

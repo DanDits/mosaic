@@ -75,7 +75,7 @@ public class FastMatcherTest {
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragmentForColor(0xFFFF0000));
         assertTrue(bestMatch.isPresent());
         assertEquals(5, matcher.getUsedTilesCount());
-        assertTrue(matcher.removeTile(bestMatch.get()));
+        assertTrue(matcher.doRemoveTile(bestMatch.get()));
         assertEquals(4, matcher.getUsedTilesCount());
         assertEquals(5, tiles.size());
     }

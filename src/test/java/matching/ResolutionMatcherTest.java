@@ -44,7 +44,7 @@ public class ResolutionMatcherTest {
         assertTrue(bestMatch.isPresent());
 
         assertEquals(6, matcher.getUsedTilesCount());
-        assertTrue(matcher.removeTile(bestMatch.get()));
+        assertTrue(matcher.doRemoveTile(bestMatch.get()));
         assertEquals(5, matcher.getUsedTilesCount());
         assertEquals(6, tiles.size());
     }

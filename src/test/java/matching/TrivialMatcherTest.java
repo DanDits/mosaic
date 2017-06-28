@@ -43,7 +43,7 @@ public class TrivialMatcherTest {
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragment(seed));
         assertTrue(bestMatch.isPresent());
         assertEquals(1, matcher.getUsedTilesCount());
-        assertFalse(matcher.removeTile(bestMatch.get()));
+        assertFalse(matcher.doRemoveTile(bestMatch.get()));
         assertEquals(1, matcher.getUsedTilesCount());
     }
 

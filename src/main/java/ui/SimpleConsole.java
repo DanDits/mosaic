@@ -1,8 +1,8 @@
 package ui;
 
+import assembling.ProgressCallback;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
-import data.mosaic.MosaicMaker;
 import data.mosaic.MosaicTile;
 import reconstruction.ReconstructionParameters;
 import reconstruction.pattern.PatternReconstructor;
@@ -103,7 +103,7 @@ public class SimpleConsole {
         if (analyzationFiles.size() == 0) {
             return "No files found that store analyzed images at " + analyzationPath;
         }
-        MosaicMaker.ProgressCallback progress = new MosaicMaker.ProgressCallback() {
+        ProgressCallback progress = new ProgressCallback() {
             int lastPublishedProgress = -1;
             @Override
             public boolean isCancelled() {
@@ -123,7 +123,7 @@ public class SimpleConsole {
         return saveMosaic(result, targetFile);
     }
 
-    private static AbstractBitmap makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, MosaicMaker.ProgressCallback progress) {
+    private static AbstractBitmap makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, ProgressCallback progress) {
         FileMosaicMaker maker = new FileMosaicMaker(analyzationFiles);
         ReconstructionParameters parameters = null;
         PatternReconstructor.PatternParameters patternParameters = null;
@@ -174,7 +174,7 @@ public class SimpleConsole {
         return result;
     }
 
-    private static ReconstructionParameters makeMosaicPuzzle(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static ReconstructionParameters makeMosaicPuzzle(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -187,7 +187,7 @@ public class SimpleConsole {
         return maker.getMaker().makePuzzleParameters(source, rows, columns, progress);
     }
 
-    private static AbstractBitmap makeMosaicSVD(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static AbstractBitmap makeMosaicSVD(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         double mergeFactor = 0.7;
         if (typeParams.length > 0) {
             mergeFactor = parseDoubleSafe(typeParams[0], mergeFactor);
@@ -195,7 +195,7 @@ public class SimpleConsole {
         return maker.makeSVD(sourceFile, mergeFactor, progress);
     }
 
-    private static ReconstructionParameters makeMosaicAutoLayer(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static ReconstructionParameters makeMosaicAutoLayer(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         double mergeFactor = 0.5;
         if (typeParams.length > 0) {
             mergeFactor = parseDoubleSafe(typeParams[0], mergeFactor);
@@ -204,7 +204,7 @@ public class SimpleConsole {
         return maker.getMaker().makeAutoLayerParameters(source, mergeFactor, progress);
     }
 
-    private static ReconstructionParameters makeMosaicFixedLayer(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static ReconstructionParameters makeMosaicFixedLayer(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         int layerCount = 3;
         if (typeParams.length > 0) {
             layerCount = parseIntegerSafe(typeParams[0], layerCount);
@@ -214,7 +214,7 @@ public class SimpleConsole {
     }
 
 
-    private static PatternReconstructor.PatternParameters makeMosaicCircle(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static PatternReconstructor.PatternParameters makeMosaicCircle(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -227,7 +227,7 @@ public class SimpleConsole {
         return maker.getMaker().makePatternParameters(source, CirclePatternReconstructor.NAME, rows, columns, progress);
     }
 
-    private static PatternReconstructor.PatternParameters makeMosaicLego(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static PatternReconstructor.PatternParameters makeMosaicLego(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -242,7 +242,7 @@ public class SimpleConsole {
         return params;
     }
 
-    private static ReconstructionParameters makeMosaicRect(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static ReconstructionParameters makeMosaicRect(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -255,7 +255,7 @@ public class SimpleConsole {
         return maker.getMaker().makeRectParameters(source, rows, columns, progress);
     }
 
-    private static ReconstructionParameters makeMosaicMultiRect(String[] typeParams, File sourceFile, MosaicMaker.ProgressCallback progress, FileMosaicMaker maker) {
+    private static ReconstructionParameters makeMosaicMultiRect(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
         int rows = 5;
         int columns = 5;
         double mergeFactor = 0.7;

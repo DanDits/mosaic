@@ -48,7 +48,7 @@ public abstract class TileMatcher<S> {
     	matchesCache.setCacheSize(size);
 	}
 
-    protected void resetHashMatches() {
+    private void resetHashMatches() {
         matchesCache.clearCache(Cachable.CLEAR_EMPTY);
     }
 
@@ -98,7 +98,7 @@ public abstract class TileMatcher<S> {
 				reuseCount.put(result.get().getSource(), currentReuseCount + 1);
 				if (currentReuseCount >= reuseLimit) {
 					canUseResult = false;
-					removeTile(result.get());
+					doRemoveTile(result.get());
 					matchesCache.removeFromCache(wantedFragment);
 				}
 			}
@@ -113,7 +113,7 @@ public abstract class TileMatcher<S> {
 	 */
 	public abstract double getAccuracy();
     public abstract boolean setAccuracy(double accuracy);
-	
+
 	/**
 	 * Removes one occurance of the given MosaicTile from the TileMatcher. This operation can
 	 * be performed during matching and is useful to eleminate tiles which reference
@@ -123,8 +123,17 @@ public abstract class TileMatcher<S> {
 	 * @return <code>true</code> only if the tile was contained in the set of MosaicTiles
 	 * of this matcher and then removed.
 	 */
-	public abstract boolean removeTile(MosaicTile<S> toRemove);
-	
+	protected abstract boolean doRemoveTile(MosaicTile<S> toRemove);
+
+	public final boolean removeTile(MosaicTile<S> toRemove) {
+		if (doRemoveTile(toRemove)) {
+			// also clear tile from cache
+			matchesCache.removeValueFromCache(toRemove);
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Returns the amount of MosaicTiles used by this TileMatcher.
 	 * @return The amount of MosaicTiles used by this TileMatcher.

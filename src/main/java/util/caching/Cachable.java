@@ -27,4 +27,6 @@ public interface Cachable<K, V> {
     void setCacheSize(int sizeHint);
 
     void removeFromCache(K key);
+
+    void removeValueFromCache(V value);
 }

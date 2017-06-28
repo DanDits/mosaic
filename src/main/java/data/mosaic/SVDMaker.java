@@ -1,5 +1,6 @@
 package data.mosaic;
 
+import assembling.ProgressCallback;
 import bitmapMatrix.ARGBMatrix;
 import bitmapMatrix.BitmapMatrix;
 import bitmapMatrix.IndexedBitmap;
@@ -24,7 +25,7 @@ public class SVDMaker {
     private BitmapMatrix mBitmapMatrix;
     private final int mRank;
 
-    public SVDMaker(AbstractBitmap base, int mode, final MosaicMaker.ProgressCallback
+    public SVDMaker(AbstractBitmap base, int mode, final ProgressCallback
             callback) {
         int mMode = mode;
         Matrix sourceMatrix;

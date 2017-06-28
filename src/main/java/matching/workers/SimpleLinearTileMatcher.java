@@ -62,7 +62,7 @@ public class SimpleLinearTileMatcher<S> extends TileMatcher<S> {
 	}
 
 	@Override
-	public boolean removeTile(MosaicTile toRemove) {
+	public boolean doRemoveTile(MosaicTile toRemove) {
 		return this.tiles.remove(toRemove);
 	}
 

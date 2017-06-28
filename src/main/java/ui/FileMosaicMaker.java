@@ -1,5 +1,6 @@
 package ui;
 
+import assembling.ProgressCallback;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.image.BitmapSource;
@@ -26,7 +27,7 @@ public class FileMosaicMaker {
     private static final ColorSpace DEFAULT_COLOR_SPACE = ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA;
     private static final boolean SVD_RANK_PARAMETER_LOGARITHMIC_SCALE = true;
     private final MosaicMaker<String> mMosaicMaker;
-    private MosaicMaker.ProgressCallback progress;
+    private ProgressCallback progress;
     private int targetWidth;
     private int targetHeight;
     private SVDMaker svdMaker;
@@ -58,7 +59,7 @@ public class FileMosaicMaker {
         return mMosaicMaker;
     }
 
-    public AbstractBitmap makeSVD(File sourceFile, double factor, MosaicMaker.ProgressCallback callback) {
+    public AbstractBitmap makeSVD(File sourceFile, double factor, ProgressCallback callback) {
         AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
         if (svdMaker == null) {
             svdMaker = new SVDMaker(bitmap, SVDMaker.MODE_INDEXED_BITMAP, callback);

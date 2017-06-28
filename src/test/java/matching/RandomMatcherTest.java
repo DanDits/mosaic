@@ -51,7 +51,7 @@ public class RandomMatcherTest {
         Optional<? extends MosaicTile<String>> bestMatch = matcher.getBestMatch(getFragment());
         assertTrue(bestMatch.isPresent());
         assertEquals(3, matcher.getUsedTilesCount());
-        assertTrue(matcher.removeTile(bestMatch.get()));
+        assertTrue(matcher.doRemoveTile(bestMatch.get()));
         assertEquals(2, matcher.getUsedTilesCount());
         assertEquals(3, tiles.size());
     }

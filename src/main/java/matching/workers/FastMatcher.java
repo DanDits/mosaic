@@ -55,7 +55,7 @@ public class FastMatcher<S> extends TileMatcher<S> {
     }
 
     @Override
-    public boolean removeTile(MosaicTile<S> toRemove) {
+    public boolean doRemoveTile(MosaicTile<S> toRemove) {
         return tree.removeNode(toRemove);
     }
 
