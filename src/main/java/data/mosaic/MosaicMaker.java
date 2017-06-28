@@ -76,7 +76,6 @@ public class MosaicMaker<S> {
             return null;
         }
         if (cutResultToSourceAlpha && source != null) {
-            System.out.println("Cutting finished mosaic to source alpha.");
             AbstractCanvas canvas = AbstractCanvasFactory.getInstance().makeCanvas(mosaic);
             canvas.drawBitmapUsingPorterDuff(source, 0, 0, PorterDuffMode.DESTINATION_IN);
             return canvas.obtainImage();

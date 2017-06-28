@@ -15,14 +15,14 @@
 
 package bitmapMatrix;
 
+import data.image.AbstractBitmap;
+import data.image.AbstractBitmapFactory;
+import util.jama.Matrix;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import data.image.AbstractBitmap;
-import data.image.AbstractBitmapFactory;
-import util.jama.Matrix;
 
 /**
  * Created by daniel on 03.07.15.
@@ -34,7 +34,6 @@ public class IndexedBitmap implements BitmapMatrix {
     private boolean mTransposeRequired;
 
     public IndexedBitmap(AbstractBitmap source) {
-        long tic = System.currentTimeMillis();
         makeIndexedMatrix(source);
     }
 

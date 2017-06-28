@@ -8,6 +8,7 @@ import data.mosaic.MosaicTile;
 import matching.TileMatcher;
 import matching.workers.SimpleLinearTileMatcher;
 import matching.workers.TrivialMatcher;
+import org.pmw.tinylog.Logger;
 import reconstruction.ReconstructionParameters;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.pattern.PatternSource;
@@ -70,7 +71,7 @@ public class LegoPatternReconstructor extends PatternReconstructor {
         usePalettes = parameters.usePalettes;
         mLegoBitmap = AbstractBitmapFactory.makeInstance(new File(LEGO_PATH)).createBitmap();
         if (mLegoBitmap == null) {
-            System.err.println("Error loading lego bitmap!");
+            Logger.error("Could not load lego bitmap from " + LEGO_PATH);
         }
     }
 

@@ -87,7 +87,6 @@ public class AutoLayerReconstructor extends Reconstructor {
 
     private void init(AbstractBitmap source, double factor, PercentProgressListener progress) {
 
-        long tic = System.currentTimeMillis();
         final int width = source.getWidth();
         final int height = source.getHeight();
         mResult = obtainBaseBitmap(width, height);

@@ -2,6 +2,7 @@ package awt;
 
 import data.image.AbstractBitmap;
 import net.coobird.thumbnailator.Thumbnails;
+import org.pmw.tinylog.Logger;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -41,7 +42,7 @@ public class Bitmap implements AbstractBitmap {
         try {
             return new Bitmap(Thumbnails.of(image).scale(1.).rotate(degree).asBufferedImage());
         } catch (IOException e) {
-            System.err.println("Some error rotation:" + e);
+            Logger.error("Some error rotating: {}", e); // should not happen was we do not load/save the image
             throw new IllegalArgumentException("Could not rotate.");
         }
     }

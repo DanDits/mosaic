@@ -4,6 +4,7 @@ import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
+import org.pmw.tinylog.Logger;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -40,7 +41,7 @@ public class BitmapFactory extends AbstractBitmapFactory {
                 }
                 return new Bitmap(image);
             } catch (UnsupportedFormatException format) {
-                System.err.println("Not an image file:" + file);
+                Logger.error("Not an image file: {}", file);
                 return null;
             } catch (IOException e) {
                 e.printStackTrace();

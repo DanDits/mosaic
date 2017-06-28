@@ -4,13 +4,17 @@ import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.mosaic.MosaicTile;
 import data.storage.JSONStorage;
+import org.pmw.tinylog.Logger;
 import util.image.ColorAnalysisUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -74,7 +78,7 @@ public class FileMosaicAnalyzer {
                         tiles.add(new FileMosaicTile(file.getCanonicalPath(), color, bitmap.getWidth(), bitmap.getHeight()));
                     } // else not an image file
                 } catch (IOException e) {
-                    System.err.println("Could not read image file:" + e);
+                    Logger.error("Could not read image file {}", e);
                 }
             }
             return CONTINUE;
@@ -84,9 +88,9 @@ public class FileMosaicAnalyzer {
         public FileVisitResult visitFileFailed(Path file,
                         IOException exc) {
             if (exc instanceof FileSystemLoopException) {
-                System.err.println("cycle detected: " + file);
+                Logger.error("Detected cycle when analyzing files: {}", file);
             } else {
-                System.err.format("Unable to visit:" + " %s: %s%n", file, exc);
+                Logger.error("Could not visit file {}: {}", file, exc);
             }
             return CONTINUE;
         }

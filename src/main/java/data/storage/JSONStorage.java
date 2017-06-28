@@ -5,9 +5,12 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.pmw.tinylog.Logger;
 
 import java.io.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by dd on 03.06.17.
@@ -40,7 +43,7 @@ public class JSONStorage<S> {
                 }
             }
         } catch (FileNotFoundException fnf) {
-            System.out.println("Creating new save file at: " + file);
+            Logger.info("Creating new save file at: {}", file);
         } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
@@ -50,7 +53,7 @@ public class JSONStorage<S> {
     private boolean save(File path, JSONObject obj) {
         File parent = path.getParentFile();
         if (!parent.isDirectory() && !parent.mkdirs()) {
-            System.err.println("Could not create directories to save to " + path);
+            Logger.error("Could not create directories to save to {}", path);
             return false;
         }
         try (FileWriter file = new FileWriter(path)) {

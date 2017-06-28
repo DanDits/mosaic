@@ -12,6 +12,7 @@ import matching.workers.FastMatcher;
 import matching.workers.RandomMatcher;
 import matching.workers.ResolutionMatcher;
 import matching.workers.SimpleLinearTileMatcher;
+import org.pmw.tinylog.Logger;
 import util.image.ColorSpace;
 
 import java.io.File;
@@ -35,7 +36,7 @@ public class FileMosaicMaker {
     public FileMosaicMaker(List<File> analyzationFiles) {
         Set<MosaicTile<String>> tiles = analyzationFiles.stream().map(FileMosaicJSONBuilder::loadExistingTiles)
                 .flatMap(Set::stream).collect(Collectors.toSet());
-        System.out.println("Loaded " + tiles.size() + " tiles from " + analyzationFiles.size() + " analyzation files.");
+        Logger.info("Loaded {} tiles from {} analyzation files.", tiles.size(), analyzationFiles.size());
         BitmapSource<String> source = new FileBitmapSource();
 
         TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_COLOR_SPACE);
