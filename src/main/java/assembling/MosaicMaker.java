@@ -13,51 +13,30 @@
  *
  */
 
-package data.mosaic;
+package assembling;
 
-import assembling.ProgressCallback;
-import assembling.ReconstructorAssemblor;
 import data.image.*;
 import matching.TileMatcher;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.workers.*;
-import util.MultistepPercentProgressListener;
 import util.image.Color;
 import util.image.ColorSpace;
 
 import java.util.Optional;
 
-/**
- * This class uses a tile matcher as a source pool for MosaicTiles and reconstructs
- * an mosaic for a source bitmap with some Reconstructor type.
- * @param <S>
- */
+
 public class MosaicMaker<S> {
+    // TODO ultimatively this class is only supposed to offer some default and example assemblors
+    // TODO and serves as a factory
 	private final BitmapSource<S> mBitmapSource;
 	private TileMatcher<S> mMatcher;
 	private ColorSpace space;
 	private boolean cutResultToSourceAlpha;
 
 
-    private static class MultiStepPercentProgressCallback extends MultistepPercentProgressListener implements ProgressCallback {
-
-        private final ProgressCallback mCallback;
-
-        public MultiStepPercentProgressCallback(ProgressCallback callback, int steps) {
-            super(callback, steps);
-            mCallback = callback;
-        }
-
-
-        @Override
-        public boolean isCancelled() {
-            return mCallback.isCancelled();
-        }
-    }
-
-	public MosaicMaker(TileMatcher<S> tileMatcher, BitmapSource<S> bitmapSource, ColorSpace space) {
+    public MosaicMaker(TileMatcher<S> tileMatcher, BitmapSource<S> bitmapSource, ColorSpace space) {
 		if (tileMatcher == null || bitmapSource == null) {
 			throw new IllegalArgumentException("No matcher or source given.");
 		}
@@ -92,7 +71,8 @@ public class MosaicMaker<S> {
     }
 
     public MultiRectReconstructor.MultiRectParameters makeMultiRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
-        MultiRectReconstructor.MultiRectParameters params = new MultiRectReconstructor.MultiRectParameters(source);
+        MultiRectReconstructor.MultiRectParameters params = new MultiRectReconstructor.MultiRectParameters();
+        params.source = source;
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
         params.similarityFactor = mergeFactor;
@@ -101,22 +81,25 @@ public class MosaicMaker<S> {
     }
 
     public RectReconstructor.RectParameters makeRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
-        RectReconstructor.RectParameters params = new RectReconstructor.RectParameters(source);
+        RectReconstructor.RectParameters params = new RectReconstructor.RectParameters();
+        params.source = source;
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
         return params;
     }
 
     public PuzzleReconstructor.PuzzleParameters makePuzzleParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
-        PuzzleReconstructor.PuzzleParameters params = new PuzzleReconstructor.PuzzleParameters(source);
+        PuzzleReconstructor.PuzzleParameters params = new PuzzleReconstructor.PuzzleParameters();
+        params.source = source;
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
         return params;
     }
 
     public AutoLayerReconstructor.AutoLayerParameters makeAutoLayerParameters(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
-        MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
-        AutoLayerReconstructor.AutoLayerParameters params = new AutoLayerReconstructor.AutoLayerParameters(source);
+        MultiStepProgressCallback multiProgress = new MultiStepProgressCallback(progress, 2);
+        AutoLayerReconstructor.AutoLayerParameters params = new AutoLayerReconstructor.AutoLayerParameters();
+        params.source = source;
         params.space = space;
         params.factor = mergeFactor;
         params.progress = multiProgress;
@@ -124,8 +107,9 @@ public class MosaicMaker<S> {
     }
 
     public FixedLayerReconstructor.FixedLayerParameters makeFixedLayerParameters(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
-        MultiStepPercentProgressCallback multiProgress = new MultiStepPercentProgressCallback(progress, 2);
-        FixedLayerReconstructor.FixedLayerParameters params = new FixedLayerReconstructor.FixedLayerParameters(source);
+        MultiStepProgressCallback multiProgress = new MultiStepProgressCallback(progress, 2);
+        FixedLayerReconstructor.FixedLayerParameters params = new FixedLayerReconstructor.FixedLayerParameters();
+        params.source = source;
         params.space = space;
         params.layersCount = clusterCount;
         params.progress = multiProgress;
@@ -139,12 +123,13 @@ public class MosaicMaker<S> {
             default:
                 // fall through
             case CirclePatternReconstructor.NAME:
-                params = new CirclePatternReconstructor.CircleParameters(source);
+                params = new CirclePatternReconstructor.CircleParameters();
                 break;
             case LegoPatternReconstructor.NAME:
-                params = new LegoPatternReconstructor.LegoParameters(source);
+                params = new LegoPatternReconstructor.LegoParameters();
                 break;
         }
+        params.source = source;
         params.wantedColumns = columns;
         params.wantedRows = rows;
         params.groundingColor = Color.TRANSPARENT;
@@ -155,7 +140,7 @@ public class MosaicMaker<S> {
         if (parameters == null) {
             throw new NullPointerException();
         }
-        AbstractBitmap source = parameters.getBitmapSource();
+        AbstractBitmap source = parameters.source;
         PatternReconstructor reconstructor = parameters.makeReconstructor();
         Optional<AbstractBitmap> bmp = ReconstructorAssemblor.make(reconstructor.makeMatcher(parameters.getColorSpace(space)),
                                                                    reconstructor.makeSource(), reconstructor, callback);
@@ -166,7 +151,7 @@ public class MosaicMaker<S> {
         if (parameters == null) {
             throw new NullPointerException();
         }
-        AbstractBitmap source = parameters.getBitmapSource();
+        AbstractBitmap source = parameters.source;
         Reconstructor reconstructor = parameters.makeReconstructor();
         Optional<AbstractBitmap> bmp = ReconstructorAssemblor.make(mMatcher, mBitmapSource, reconstructor, callback);
         return bmp.map(abstractBitmap -> finishMosaic(source, abstractBitmap)).orElse(null);

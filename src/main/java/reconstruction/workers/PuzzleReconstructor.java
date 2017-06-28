@@ -44,10 +44,6 @@ public class PuzzleReconstructor extends Reconstructor {
         public int wantedRows;
         public int wantedColumns;
 
-        public PuzzleParameters(AbstractBitmap source) {
-            super(source);
-        }
-
         @Override
         public Reconstructor makeReconstructor() throws IllegalParameterException {
             return new PuzzleReconstructor(this);
@@ -60,6 +56,7 @@ public class PuzzleReconstructor extends Reconstructor {
 
         @Override
         protected void validateParameters() throws IllegalParameterException {
+            super.validateParameters();
             if (wantedRows <= 0) {
                 throw new IllegalParameterException(wantedRows, "Rows must be positive.");
             }
@@ -71,7 +68,7 @@ public class PuzzleReconstructor extends Reconstructor {
 
     public PuzzleReconstructor(PuzzleParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
-        this.source = parameters.getBitmapSource();
+        this.source = parameters.source;
         int actualRows = Reconstructor.getClosestCount(source.getHeight(), parameters.wantedRows);
         int actualColumns = Reconstructor.getClosestCount(source.getWidth(), parameters.wantedColumns);
         this.rows = actualRows;

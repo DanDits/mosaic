@@ -54,10 +54,6 @@ public class FixedLayerReconstructor extends Reconstructor {
         public ColorSpace space;
         public int layersCount;
 
-        public FixedLayerParameters(AbstractBitmap source) {
-            super(source);
-        }
-
         @Override
         public Reconstructor makeReconstructor() throws IllegalParameterException {
             return new FixedLayerReconstructor(this);
@@ -72,6 +68,7 @@ public class FixedLayerReconstructor extends Reconstructor {
 
         @Override
         protected void validateParameters() throws IllegalParameterException {
+            super.validateParameters();
             if (space == null) {
                 space = DEFAULT_SPACE;
             }
@@ -84,7 +81,7 @@ public class FixedLayerReconstructor extends Reconstructor {
     private FixedLayerReconstructor(FixedLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
         space = parameters.space;
-        init(parameters.getBitmapSource(), parameters.layersCount, parameters.progress);
+        init(parameters.source, parameters.layersCount, parameters.progress);
     }
 
     private void init(AbstractBitmap source, final int clusterCount, PercentProgressListener progress) {

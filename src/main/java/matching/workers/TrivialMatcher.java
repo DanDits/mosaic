@@ -1,6 +1,6 @@
 package matching.workers;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.TileMatcher;
 import reconstruction.MosaicFragment;
 

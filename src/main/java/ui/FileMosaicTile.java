@@ -1,6 +1,6 @@
 package ui;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 
 /**
  * Created by dd on 03.06.17.

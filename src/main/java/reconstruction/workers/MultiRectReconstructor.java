@@ -31,9 +31,6 @@ public class MultiRectReconstructor extends RectReconstructor {
         public ColorSpace space;
         public double similarityFactor;
         public List<ImageResolution> resolutions;
-        public MultiRectParameters(AbstractBitmap source) {
-            super(source);
-        }
 
         @Override
         protected void resetToDefaults() {
@@ -41,7 +38,9 @@ public class MultiRectReconstructor extends RectReconstructor {
             space = DEFAULT_SPACE;
             similarityFactor = 0.8;
             resolutions = new ArrayList<>();
-            resolutions.add(source.getResolution());
+            if (source != null) {
+                resolutions.add(source.getResolution());
+            }
             resolutions.add(ImageResolution.SQUARE);
             resolutions.add(new ImageResolution(2, 3));
             resolutions.add(new ImageResolution(3, 2));

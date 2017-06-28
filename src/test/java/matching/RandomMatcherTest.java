@@ -1,6 +1,6 @@
 package matching;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.workers.RandomMatcher;
 import org.junit.Before;
 import org.junit.Test;

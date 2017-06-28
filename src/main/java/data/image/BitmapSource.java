@@ -16,7 +16,7 @@
 package data.image;
 
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 
 /**
  * An interface for a MosaicMaker to provide the actual bitmap in a certain size

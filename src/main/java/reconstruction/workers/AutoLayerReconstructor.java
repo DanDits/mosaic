@@ -35,7 +35,6 @@ import java.util.List;
  */
 public class AutoLayerReconstructor extends Reconstructor {
     private AbstractBitmap mResult;
-    private MosaicFragment mFragment;
     private MosaicFragment mNext;
     private int mLayersApplied;
     private Iterator<Integer> mColorIterator;
@@ -50,9 +49,6 @@ public class AutoLayerReconstructor extends Reconstructor {
         public double factor;
         public ColorSpace space;
 
-        public AutoLayerParameters(AbstractBitmap source) {
-            super(source);
-        }
 
         @Override
         public Reconstructor makeReconstructor() throws IllegalParameterException {
@@ -72,6 +68,7 @@ public class AutoLayerReconstructor extends Reconstructor {
 
         @Override
         protected void validateParameters() throws IllegalParameterException {
+            super.validateParameters();
             if (space == null) {
                 space = DEFAULT_SPACE;
             }
@@ -82,7 +79,7 @@ public class AutoLayerReconstructor extends Reconstructor {
     public AutoLayerReconstructor(AutoLayerParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
         space = parameters.space;
-        init(parameters.getBitmapSource(), parameters.factor, parameters.progress);
+        init(parameters.source, parameters.factor, parameters.progress);
     }
 
     private void init(AbstractBitmap source, double factor, PercentProgressListener progress) {
@@ -187,8 +184,7 @@ public class AutoLayerReconstructor extends Reconstructor {
         }
         if (mNext == null) {
             int currColor = mColorIterator.next();
-            mFragment = new MosaicFragment(mResult.getWidth(), mResult.getHeight(), currColor);
-            mNext = mFragment;
+            mNext = new MosaicFragment(mResult.getWidth(), mResult.getHeight(), currColor);
         }
         return mNext;
     }

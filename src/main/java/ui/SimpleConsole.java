@@ -3,7 +3,7 @@ package ui;
 import assembling.ProgressCallback;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import reconstruction.ReconstructionParameters;
 import reconstruction.pattern.PatternReconstructor;
 import reconstruction.workers.CirclePatternReconstructor;

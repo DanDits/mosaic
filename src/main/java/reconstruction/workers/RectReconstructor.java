@@ -19,10 +19,17 @@ package reconstruction.workers;
 import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
+import data.image.ImageResolution;
+import effects.BitmapEffect;
+import effects.workers.ResizeUsingDivisorsEffect;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.image.ColorAnalysisUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * This class models a specific {@link Reconstructor} which fragments
@@ -41,17 +48,20 @@ public class RectReconstructor extends Reconstructor {
     protected AbstractCanvas mResultCanvas;
 	private int nextImageIndex;
 
-	public static class RectParameters extends ReconstructionParameters{
+	public static class RectParameters extends ReconstructionParameters implements Supplier<ImageResolution> {
 		public int wantedRows;
 		public int wantedColumns;
-
-		public RectParameters(AbstractBitmap source) {
-			super(source);
-		}
 
 		@Override
 		public Reconstructor makeReconstructor() throws IllegalParameterException {
 			return new RectReconstructor(this);
+		}
+
+		@Override
+		public List<BitmapEffect> getPreReconstructionEffects() {
+			List<BitmapEffect> effects = new ArrayList<>(1);
+			effects.add(new ResizeUsingDivisorsEffect(this));
+			return effects;
 		}
 
 		@Override
@@ -61,12 +71,18 @@ public class RectReconstructor extends Reconstructor {
 
 		@Override
 		protected void validateParameters() throws IllegalParameterException {
+			super.validateParameters();
 			if (wantedRows <= 0) {
 				throw new IllegalParameterException(wantedRows, "Rows must be positive.");
 			}
 			if (wantedColumns <= 0) {
 				throw new IllegalParameterException(wantedColumns, "Columns must be positive.");
 			}
+		}
+
+		@Override
+		public ImageResolution get() {
+			return new ImageResolution(wantedColumns, wantedRows);
 		}
 	}
 
@@ -75,7 +91,7 @@ public class RectReconstructor extends Reconstructor {
 			throw new NullPointerException();
 		}
 		parameters.validateParameters();
-		AbstractBitmap source = parameters.getBitmapSource();
+		AbstractBitmap source = parameters.source;
 		int actualRows = Reconstructor.getClosestCount(source.getHeight(), parameters.wantedRows);
 		int actualColumns = Reconstructor.getClosestCount(source.getWidth(), parameters.wantedColumns);
 		this.mRectHeight = source.getHeight() / actualRows;

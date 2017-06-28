@@ -22,10 +22,6 @@ public class CirclePatternReconstructor extends PatternReconstructor {
 
     public static class CircleParameters extends PatternParameters {
 
-        public CircleParameters(AbstractBitmap source) {
-            super(source);
-        }
-
         @Override
         public PatternReconstructor makeReconstructor() throws IllegalParameterException {
             return new CirclePatternReconstructor(this);

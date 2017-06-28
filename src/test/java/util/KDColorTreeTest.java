@@ -1,6 +1,6 @@
 package util;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.MockTile;
 import matching.workers.SimpleLinearTileMatcher;
 import org.junit.Before;

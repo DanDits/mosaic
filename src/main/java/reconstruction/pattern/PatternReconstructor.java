@@ -14,9 +14,6 @@ public abstract class PatternReconstructor extends RectReconstructor {
 
     public static abstract class PatternParameters extends RectReconstructor.RectParameters {
         public int groundingColor;
-        public PatternParameters(AbstractBitmap source) {
-            super(source);
-        }
         @Override
         protected void resetToDefaults() {
             super.resetToDefaults();

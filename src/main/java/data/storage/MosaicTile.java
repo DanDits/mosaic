@@ -13,7 +13,7 @@
  *
  */
 
-package data.mosaic;
+package data.storage;
 
 
 import data.image.ImageResolution;

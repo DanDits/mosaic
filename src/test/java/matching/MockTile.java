@@ -1,6 +1,6 @@
 package matching;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 
 
 public class MockTile implements MosaicTile<String> {

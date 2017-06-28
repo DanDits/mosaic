@@ -3,7 +3,7 @@ package ui;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.image.BitmapSource;
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import util.caching.LruCache;
 
 import java.io.File;

@@ -2,7 +2,7 @@ package ui;
 
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import data.storage.JSONStorage;
 import org.pmw.tinylog.Logger;
 import util.image.ColorAnalysisUtil;

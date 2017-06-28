@@ -1,6 +1,6 @@
 package matching;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.workers.TrivialMatcher;
 import org.junit.Test;
 import reconstruction.MosaicFragment;

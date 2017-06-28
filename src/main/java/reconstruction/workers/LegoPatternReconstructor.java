@@ -4,7 +4,7 @@ import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.TileMatcher;
 import matching.workers.SimpleLinearTileMatcher;
 import matching.workers.TrivialMatcher;
@@ -45,9 +45,6 @@ public class LegoPatternReconstructor extends PatternReconstructor {
 
     public static class LegoParameters extends PatternParameters {
         public boolean usePalettes;
-        public LegoParameters(AbstractBitmap source) {
-            super(source);
-        }
 
         @Override
         public void resetToDefaults() {

@@ -1,6 +1,6 @@
 package matching;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.workers.SimpleLinearTileMatcher;
 import org.junit.Before;
 import org.junit.Test;

@@ -16,7 +16,7 @@
 package matching;
 
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import reconstruction.MosaicFragment;
 import util.caching.Cachable;
 import util.caching.LruCache;

@@ -1,6 +1,6 @@
 package matching;
 
-import data.mosaic.MosaicTile;
+import data.storage.MosaicTile;
 import matching.workers.FastMatcher;
 import matching.workers.RandomMatcher;
 import matching.workers.ResolutionMatcher;

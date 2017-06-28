@@ -1,25 +1,24 @@
 package ui;
 
+import assembling.MosaicMaker;
 import assembling.ProgressCallback;
+import assembling.ReconstructorAssemblor;
+import assembling.SVDMaker;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.image.BitmapSource;
-import data.mosaic.MosaicMaker;
-import data.mosaic.MosaicTile;
-import data.mosaic.SVDMaker;
+import data.storage.MosaicTile;
 import matching.TileMatcher;
 import matching.workers.FastMatcher;
 import matching.workers.RandomMatcher;
 import matching.workers.ResolutionMatcher;
 import matching.workers.SimpleLinearTileMatcher;
-import org.pmw.tinylog.Logger;
 import util.image.ColorSpace;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Created by dd on 03.06.17.
@@ -34,11 +33,9 @@ public class FileMosaicMaker {
     private SVDMaker svdMaker;
 
     public FileMosaicMaker(List<File> analyzationFiles) {
-        Set<MosaicTile<String>> tiles = analyzationFiles.stream().map(FileMosaicJSONBuilder::loadExistingTiles)
-                .flatMap(Set::stream).collect(Collectors.toSet());
-        Logger.info("Loaded {} tiles from {} analyzation files.", tiles.size(), analyzationFiles.size());
-        BitmapSource<String> source = new FileBitmapSource();
 
+        BitmapSource<String> source = new FileBitmapSource();
+        Collection<MosaicTile<String>> tiles = ReconstructorAssemblor.loadTilesFromFiles(analyzationFiles);
         TileMatcher<String> matcher = new SimpleLinearTileMatcher<>(tiles, DEFAULT_COLOR_SPACE);
         matcher.setTileReuseLimit(TileMatcher.REUSE_NONE);
 
