@@ -13,7 +13,7 @@
  *
  */
 
-package bitmapMatrix;
+package data.bitmapMatrix;
 
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;

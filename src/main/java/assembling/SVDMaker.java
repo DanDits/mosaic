@@ -1,6 +1,6 @@
 package assembling;
 
-import bitmapMatrix.*;
+import data.bitmapMatrix.*;
 import data.image.AbstractBitmap;
 import util.PercentProgressListener;
 import util.jama.Matrix;

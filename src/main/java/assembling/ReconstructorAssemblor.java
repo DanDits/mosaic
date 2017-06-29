@@ -27,9 +27,6 @@ public class ReconstructorAssemblor {
 
     private ReconstructorAssemblor() {}
 
-    //TODO make effects package for stuff like cutBitmapToResourceAlpha, pattern reconstruction and others that
-    // TODO are no real mosaics and do not need real reconstruction with a matcher.
-    // TODO allow assembler to chain stuff like reconstructors and effects and SVDs
     private static boolean safeIsCancelled(ProgressCallback callback) {
         return callback != null && callback.isCancelled();
     }

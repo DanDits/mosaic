@@ -30,8 +30,6 @@ import java.util.Objects;
 
 
 public class MosaicMaker<S> {
-    // TODO ultimatively this class is only supposed to offer some default and example assemblors
-    // TODO and serves as a factory
 	private final BitmapSource<S> bitmapSource;
 	private TileMatcher<S> matcher;
 	private ColorSpace space;

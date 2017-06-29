@@ -1,4 +1,4 @@
-package bitmapMatrix;
+package data.bitmapMatrix;
 
 import data.image.AbstractBitmap;
 
