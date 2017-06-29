@@ -19,9 +19,9 @@ package reconstruction.workers;
 import data.image.AbstractBitmap;
 import data.image.AbstractCanvas;
 import data.image.AbstractCanvasFactory;
-import data.image.ImageResolution;
 import effects.BitmapEffect;
 import effects.workers.ResizeUsingDivisorsEffect;
+import effects.SizeSupplier2D;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
@@ -29,7 +29,6 @@ import util.image.ColorAnalysisUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * This class models a specific {@link Reconstructor} which fragments
@@ -48,7 +47,7 @@ public class RectReconstructor extends Reconstructor {
     protected AbstractCanvas mResultCanvas;
 	private int nextImageIndex;
 
-	public static class RectParameters extends ReconstructionParameters implements Supplier<ImageResolution> {
+	public static class RectParameters extends ReconstructionParameters implements SizeSupplier2D {
 		public int wantedRows;
 		public int wantedColumns;
 
@@ -81,8 +80,13 @@ public class RectReconstructor extends Reconstructor {
 		}
 
 		@Override
-		public ImageResolution get() {
-			return new ImageResolution(wantedColumns, wantedRows);
+		public int getColumns() {
+			return wantedColumns;
+		}
+
+		@Override
+		public int getRows() {
+			return wantedRows;
 		}
 	}
 
@@ -92,8 +96,8 @@ public class RectReconstructor extends Reconstructor {
 		}
 		parameters.validateParameters();
 		AbstractBitmap source = parameters.source;
-		int actualRows = Reconstructor.getClosestCount(source.getHeight(), parameters.wantedRows);
-		int actualColumns = Reconstructor.getClosestCount(source.getWidth(), parameters.wantedColumns);
+		int actualRows = ResizeUsingDivisorsEffect.getClosestCount(source.getHeight(), parameters.wantedRows);
+		int actualColumns = ResizeUsingDivisorsEffect.getClosestCount(source.getWidth(), parameters.wantedColumns);
 		this.mRectHeight = source.getHeight() / actualRows;
 		this.mRectWidth = source.getWidth() / actualColumns;
 		this.resultingRGBA = new int[actualRows][actualColumns];

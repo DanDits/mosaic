@@ -1,12 +1,17 @@
 package reconstruction.workers;
 
 import data.image.*;
+import effects.BitmapEffect;
+import effects.SizeSupplier2D;
+import effects.workers.ResizeUsingDivisorsEffect;
 import reconstruction.MosaicFragment;
 import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import util.image.Color;
 import util.image.ColorAnalysisUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -40,7 +45,7 @@ public class PuzzleReconstructor extends Reconstructor {
     private AbstractCanvas noseBufferVertical;
 
 
-    public static class PuzzleParameters extends ReconstructionParameters {
+    public static class PuzzleParameters extends ReconstructionParameters implements SizeSupplier2D {
         public int wantedRows;
         public int wantedColumns;
 
@@ -55,6 +60,13 @@ public class PuzzleReconstructor extends Reconstructor {
         }
 
         @Override
+        public List<BitmapEffect> getPreReconstructionEffects() {
+            List<BitmapEffect> effects = new ArrayList<>(1);
+            effects.add(new ResizeUsingDivisorsEffect(this));
+            return effects;
+        }
+
+        @Override
         protected void validateParameters() throws IllegalParameterException {
             super.validateParameters();
             if (wantedRows <= 0) {
@@ -64,13 +76,23 @@ public class PuzzleReconstructor extends Reconstructor {
                 throw new IllegalParameterException(wantedColumns, "Columns must be positive.");
             }
         }
+
+        @Override
+        public int getColumns() {
+            return wantedColumns;
+        }
+
+        @Override
+        public int getRows() {
+            return wantedRows;
+        }
     }
 
     public PuzzleReconstructor(PuzzleParameters parameters) throws ReconstructionParameters.IllegalParameterException {
         parameters.validateParameters();
         this.source = parameters.source;
-        int actualRows = Reconstructor.getClosestCount(source.getHeight(), parameters.wantedRows);
-        int actualColumns = Reconstructor.getClosestCount(source.getWidth(), parameters.wantedColumns);
+        int actualRows = ResizeUsingDivisorsEffect.getClosestCount(source.getHeight(), parameters.wantedRows);
+        int actualColumns = ResizeUsingDivisorsEffect.getClosestCount(source.getWidth(), parameters.wantedColumns);
         this.rows = actualRows;
         this.columns = actualColumns;
         this.rectHeight = source.getHeight() / actualRows;

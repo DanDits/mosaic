@@ -15,149 +15,108 @@
 
 package assembling;
 
-import data.image.*;
+import data.image.AbstractBitmap;
+import data.image.BitmapSource;
+import data.storage.MosaicTile;
 import matching.TileMatcher;
+import matching.workers.FastMatcher;
+import matching.workers.SimpleLinearTileMatcher;
 import reconstruction.ReconstructionParameters;
-import reconstruction.Reconstructor;
-import reconstruction.pattern.PatternReconstructor;
 import reconstruction.workers.*;
-import util.image.Color;
 import util.image.ColorSpace;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.Objects;
 
 
 public class MosaicMaker<S> {
     // TODO ultimatively this class is only supposed to offer some default and example assemblors
     // TODO and serves as a factory
-	private final BitmapSource<S> mBitmapSource;
-	private TileMatcher<S> mMatcher;
+	private final BitmapSource<S> bitmapSource;
+	private TileMatcher<S> matcher;
 	private ColorSpace space;
-	private boolean cutResultToSourceAlpha;
+	private Collection<MosaicTile<S>> tiles;
 
 
-    public MosaicMaker(TileMatcher<S> tileMatcher, BitmapSource<S> bitmapSource, ColorSpace space) {
-		if (tileMatcher == null || bitmapSource == null) {
-			throw new IllegalArgumentException("No matcher or source given.");
-		}
-		mMatcher = tileMatcher;
-		mBitmapSource = bitmapSource;
-        setColorSpace(space);
+    public MosaicMaker(BitmapSource<S> bitmapSource, ColorSpace space, Collection<MosaicTile<S>> tiles) {
+		Objects.requireNonNull(bitmapSource);
+		this.tiles = tiles;
+        setMatcherAutomatically();
+		setColorSpace(space);
+		this.bitmapSource = bitmapSource;
 	}
 
-
-    public void setCutResultToSourceAlpha(boolean cutResultToSourceAlpha) {
-        this.cutResultToSourceAlpha = cutResultToSourceAlpha;
+    private void setMatcherAutomatically() {
+        if (tiles.size() > 5000) {
+            matcher = new FastMatcher<>(tiles, space);
+        } else {
+            matcher = new SimpleLinearTileMatcher<>(tiles, space);
+        }
     }
 
-    private AbstractBitmap finishMosaic(AbstractBitmap source, AbstractBitmap mosaic) {
-        if (mosaic == null) {
-            return null;
-        }
-        if (cutResultToSourceAlpha && source != null) {
-            AbstractCanvas canvas = AbstractCanvasFactory.getInstance().makeCanvas(mosaic);
-            canvas.drawBitmapUsingPorterDuff(source, 0, 0, PorterDuffMode.DESTINATION_IN);
-            return canvas.obtainImage();
-        }
-        return mosaic;
+    public void setMatcher(TileMatcher<S> matcher) {
+        Objects.requireNonNull(matcher);
+        this.matcher = matcher;
+        this.matcher.setColorSpace(space);
     }
 
     public void setColorSpace(ColorSpace space) {
+        Objects.requireNonNull(space);
         this.space = space;
-        if (space == null) {
-            throw new IllegalArgumentException("No color space given.");
-        }
-        mMatcher.setColorSpace(space);
+        matcher.setColorSpace(space);
     }
 
-    public MultiRectReconstructor.MultiRectParameters makeMultiRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
+    private BitmapProject makeReconstructorProject(ReconstructionParameters parameters, ProgressCallback callback) {
+        return new BitmapProject(ReconstructorAssemblor.makeEffect(matcher, bitmapSource, parameters, callback));
+    }
+
+    public BitmapProject makeMultiRectProject(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
         MultiRectReconstructor.MultiRectParameters params = new MultiRectReconstructor.MultiRectParameters();
         params.source = source;
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
         params.similarityFactor = mergeFactor;
         params.space = space;
-        return params;
+        return makeReconstructorProject(params, progress);
     }
 
-    public RectReconstructor.RectParameters makeRectParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
+    public BitmapProject makeRectProject(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
         RectReconstructor.RectParameters params = new RectReconstructor.RectParameters();
         params.source = source;
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
-        return params;
+        return makeReconstructorProject(params, progress);
     }
 
-    public PuzzleReconstructor.PuzzleParameters makePuzzleParameters(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
+    public BitmapProject makePuzzleProject(AbstractBitmap source, int wantedRows, int wantedColumns, ProgressCallback progress) {
         PuzzleReconstructor.PuzzleParameters params = new PuzzleReconstructor.PuzzleParameters();
         params.source = source;
         params.wantedColumns = wantedColumns;
         params.wantedRows = wantedRows;
-        return params;
+        return makeReconstructorProject(params, progress);
     }
 
-    public AutoLayerReconstructor.AutoLayerParameters makeAutoLayerParameters(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
+    public BitmapProject makeAutoLayerProject(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
         MultiStepProgressCallback multiProgress = new MultiStepProgressCallback(progress, 2);
         AutoLayerReconstructor.AutoLayerParameters params = new AutoLayerReconstructor.AutoLayerParameters();
         params.source = source;
         params.space = space;
         params.factor = mergeFactor;
         params.progress = multiProgress;
-        return params;
+        return makeReconstructorProject(params, progress);
     }
 
-    public FixedLayerReconstructor.FixedLayerParameters makeFixedLayerParameters(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
+    public BitmapProject makeFixedLayerProject(AbstractBitmap source, int clusterCount, ProgressCallback progress) {
         MultiStepProgressCallback multiProgress = new MultiStepProgressCallback(progress, 2);
         FixedLayerReconstructor.FixedLayerParameters params = new FixedLayerReconstructor.FixedLayerParameters();
         params.source = source;
         params.space = space;
         params.layersCount = clusterCount;
         params.progress = multiProgress;
-        return params;
+        return makeReconstructorProject(params, progress);
     }
 
-    public PatternReconstructor.PatternParameters makePatternParameters(AbstractBitmap source, String patternName,
-                                                                        int rows, int columns, ProgressCallback progress) {
-        PatternReconstructor.PatternParameters params;
-        switch (patternName) {
-            default:
-                // fall through
-            case CirclePatternReconstructor.NAME:
-                params = new CirclePatternReconstructor.CircleParameters();
-                break;
-            case LegoPatternReconstructor.NAME:
-                params = new LegoPatternReconstructor.LegoParameters();
-                break;
-        }
-        params.source = source;
-        params.wantedColumns = columns;
-        params.wantedRows = rows;
-        params.groundingColor = Color.TRANSPARENT;
-        return params;
+    public BitmapProject makeSVD(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
+        return new BitmapProject(SVDAssemblor.makeEffect(SVDMaker.MODE_RGB_SPLIT, mergeFactor, progress));
     }
-
-    public AbstractBitmap make(PatternReconstructor.PatternParameters parameters, ProgressCallback callback) throws ReconstructionParameters.IllegalParameterException {
-        if (parameters == null) {
-            throw new NullPointerException();
-        }
-        AbstractBitmap source = parameters.source;
-        PatternReconstructor reconstructor = parameters.makeReconstructor();
-        Optional<AbstractBitmap> bmp = ReconstructorAssemblor.make(reconstructor.makeMatcher(parameters.getColorSpace(space)),
-                                                                   reconstructor.makeSource(), reconstructor, callback);
-        return bmp.map(abstractBitmap -> finishMosaic(source, abstractBitmap)).orElse(null);
-    }
-
-    public AbstractBitmap make(ReconstructionParameters parameters, ProgressCallback callback) throws ReconstructionParameters.IllegalParameterException {
-        if (parameters == null) {
-            throw new NullPointerException();
-        }
-        AbstractBitmap source = parameters.source;
-        Reconstructor reconstructor = parameters.makeReconstructor();
-        Optional<AbstractBitmap> bmp = ReconstructorAssemblor.make(mMatcher, mBitmapSource, reconstructor, callback);
-        return bmp.map(abstractBitmap -> finishMosaic(source, abstractBitmap)).orElse(null);
-    }
-
-
-
-
 }

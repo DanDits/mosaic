@@ -78,47 +78,6 @@ public abstract class Reconstructor {
 	 * Reconstructor does not save the image.
 	 */
 	public abstract AbstractBitmap getReconstructed();
-	
-	/**
-	 * Returns the closest value next to wantedCount which divides the given imageDimension.
-	 * @param imageDimension The dimension that must be divided. Must be positive. (Image height or width).
-	 * @param wantedCount The wanted amount of rows or columns.
-	 * @return A divisor of imageDimension (so in range 1 to imageDimension (inclusive)) which is closest
-	 * to wantedCount.
-	 * @throws IllegalArgumentException If a parameter is negative or zero.
-	 */
-	protected static int getClosestCount(int imageDimension, int wantedCount) {
-		if (imageDimension <= 0 || wantedCount <= 0) {
-			throw new IllegalArgumentException("Image and wanted rect dimension must be greater than zero");
-		} else {
-			if (wantedCount > imageDimension) {
-				return imageDimension;
-			} else {
-				return findClosestDivisor(imageDimension, wantedCount);
-			}
-		}
-	}
-	
-	/**
-	 * Returns the closest divisor to the given number. Not really fast, especially if
-	 * toNumber is prime. Expects valid parameters.
-	 * @param toNumber The number that has to be divided.
-	 * @param wantedDivisor The wanted divisior for the given number. Must be greater than zero and
-	 * smaller than or equal toNumber.
-	 * @return A proper divisor in range 1 to toNumber (both inclusive) of toNumber which
-	 * is closest to wantedDivisior;
-	 */
-	private static int findClosestDivisor(int toNumber, int wantedDivisor) {
-		int currDivisor = wantedDivisor;
-		int delta = 0;
-		while (toNumber % currDivisor != 0) {
-			// makes the divisor greater/smaller by one each iteration, circulating near wantedDivisor
-			// will terminate if divisor gets equal to one or to toNumber
-			delta++;
-			currDivisor = (delta % 2 == 0) ? (currDivisor - delta) : (currDivisor + delta);
-		}
-		return currDivisor;
-	}
 
 	public abstract int estimatedProgressPercent();
 	

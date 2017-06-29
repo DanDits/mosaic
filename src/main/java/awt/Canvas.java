@@ -64,8 +64,13 @@ public class Canvas implements AbstractCanvas {
     @Override
     public void clear() {
         ensureGraphics();
-        graphics.setColor(TRANSPARENT);
-        graphics.fillRect(0, 0, base.getWidth(), base.getHeight());
+        Graphics2D graphics2D = (Graphics2D) graphics;
+        BufferedImage image = obtainImage(bitmap);
+        Composite prevComp = graphics2D.getComposite();
+        Composite comp = porterDuffToComposite(PorterDuffMode.CLEAR);
+        graphics2D.setComposite(comp);
+        graphics2D.fillRect(0, 0, base.getWidth(), base.getHeight());
+        graphics2D.setComposite(prevComp);
     }
 
     @Override

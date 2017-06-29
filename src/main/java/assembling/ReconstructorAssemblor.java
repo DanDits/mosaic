@@ -4,6 +4,7 @@ import data.image.AbstractBitmap;
 import data.image.BitmapSource;
 import data.storage.MosaicTile;
 import effects.BitmapEffect;
+import effects.EffectGroup;
 import matching.TileMatcher;
 import org.pmw.tinylog.Logger;
 import reconstruction.MosaicFragment;
@@ -42,8 +43,8 @@ public class ReconstructorAssemblor {
     }
 
     public static <S> BitmapEffect makeEffect(TileMatcher<S> matcher, BitmapSource<S> source,
-                                              ReconstructionParameters reconstructor, ProgressCallback callback) {
-        return new MosaicEffect<>(matcher, source, reconstructor, callback);
+                                              ReconstructionParameters reconstructorParams, ProgressCallback callback) {
+        return EffectGroup.createUsingPreAndPostEffects(new MosaicEffect<>(matcher, source, reconstructorParams, callback));
     }
 
     public static <S> Optional<AbstractBitmap> make(TileMatcher<S> matcher, BitmapSource<S> source, Reconstructor
@@ -106,6 +107,17 @@ public class ReconstructorAssemblor {
             this.callback = callback;
         }
 
+        @Override
+        public List<BitmapEffect> getPreEffects() {
+            return reconstructorParams.getPreReconstructionEffects();
+        }
+
+        @Override
+        public List<BitmapEffect> getPostEffects() {
+            return reconstructorParams.getPostReconstructionEffects();
+        }
+
+        @Override
         public Optional<AbstractBitmap> apply(AbstractBitmap on) {
             Reconstructor reconstructor;
             try {

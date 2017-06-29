@@ -1,13 +1,17 @@
 package ui;
 
+import assembling.BitmapProject;
+import assembling.MosaicMaker;
 import assembling.ProgressCallback;
+import assembling.ReconstructorAssemblor;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.storage.MosaicTile;
-import reconstruction.ReconstructionParameters;
-import reconstruction.pattern.PatternReconstructor;
-import reconstruction.workers.CirclePatternReconstructor;
-import reconstruction.workers.LegoPatternReconstructor;
+import effects.workers.CirclesEffect;
+import effects.workers.LegoEffect;
+import org.pmw.tinylog.Logger;
+import util.image.Color;
+import util.image.ColorSpace;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,7 +97,7 @@ public class SimpleConsole {
     private static String generateMosaic(String sourcePath, String targetPath, String analyzationPath, String mosaicType, String[] typeParams) {
         File sourceFile = new File(sourcePath);
         if (!sourceFile.exists() || sourceFile.isDirectory()) {
-            return "Given path is not an image file.";
+            return "Given path is not an image file: " + sourcePath;
         }
         File targetFile = new File(targetPath);
         if (targetFile.isDirectory()) {
@@ -124,57 +128,52 @@ public class SimpleConsole {
     }
 
     private static AbstractBitmap makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, ProgressCallback progress) {
-        FileMosaicMaker maker = new FileMosaicMaker(analyzationFiles);
-        ReconstructionParameters parameters = null;
-        PatternReconstructor.PatternParameters patternParameters = null;
+        Collection<MosaicTile<String>> tiles = ReconstructorAssemblor.loadTilesFromFiles(analyzationFiles);
+        MosaicMaker<String> maker = new MosaicMaker<>(new FileBitmapSource(), ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA,
+                                                      tiles);
+        AbstractBitmap source = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
+        if (source == null) {
+            Logger.error("Could not load image from file: {}", sourceFile);
+            return null;
+        }
+        BitmapProject project = null;
         AbstractBitmap result = null;
         switch (mosaicType) {
             case "rect":
-                parameters = makeMosaicRect(typeParams, sourceFile, progress, maker);
+                project = makeMosaicRect(typeParams, source, progress, maker);
                 break;
             case "multirect":
-                parameters = makeMosaicMultiRect(typeParams, sourceFile, progress, maker);
+                project = makeMosaicMultiRect(typeParams, source, progress, maker);
                 break;
             case "fixedlayer":
-                parameters = makeMosaicFixedLayer(typeParams, sourceFile, progress, maker);
+                project = makeMosaicFixedLayer(typeParams, source, progress, maker);
                 break;
             case "autolayer":
-                parameters = makeMosaicAutoLayer(typeParams, sourceFile, progress, maker);
+                project = makeMosaicAutoLayer(typeParams, source, progress, maker);
                 break;
             case "circle":
-                patternParameters = makeMosaicCircle(typeParams, sourceFile, progress, maker);
+                project = makeMosaicCircle(typeParams, progress);
                 break;
             case "lego":
-                patternParameters = makeMosaicLego(typeParams, sourceFile, progress, maker);
+                project = makeMosaicLego(typeParams, progress);
                 break;
             case "puzzle":
-                parameters = makeMosaicPuzzle(typeParams, sourceFile, progress, maker);
+                project = makeMosaicPuzzle(typeParams, source, progress, maker);
                 break;
             case "svd":
-                result = makeMosaicSVD(typeParams, sourceFile, progress, maker);
+                project = makeMosaicSVD(typeParams, source, progress, maker);
                 break;
             default:
                 System.out.println("Unknown mosaic type " + mosaicType);
                 break;
         }
-        if (parameters != null) {
-            try {
-                result = maker.getMaker().make(parameters, progress);
-            } catch (ReconstructionParameters.IllegalParameterException e) {
-                System.err.println("Error creating mosaic:" + e);
-            }
-        }
-        if (patternParameters != null) {
-            try {
-                result = maker.getMaker().make(patternParameters, progress);
-            } catch (ReconstructionParameters.IllegalParameterException e) {
-                System.err.println("Error creating pattern mosaic:" + e);
-            }
+        if (project != null) {
+            result = project.build(source).orElse(null);
         }
         return result;
     }
 
-    private static ReconstructionParameters makeMosaicPuzzle(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicPuzzle(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -183,38 +182,35 @@ public class SimpleConsole {
         if (typeParams.length > 1) {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
-        AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        return maker.getMaker().makePuzzleParameters(source, rows, columns, progress);
+        return maker.makePuzzleProject(source, rows, columns, progress);
     }
 
-    private static AbstractBitmap makeMosaicSVD(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicSVD(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker maker) {
         double mergeFactor = 0.7;
         if (typeParams.length > 0) {
             mergeFactor = parseDoubleSafe(typeParams[0], mergeFactor);
         }
-        return maker.makeSVD(sourceFile, mergeFactor, progress);
+        return maker.makeSVD(source, mergeFactor, progress);
     }
 
-    private static ReconstructionParameters makeMosaicAutoLayer(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicAutoLayer(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
         double mergeFactor = 0.5;
         if (typeParams.length > 0) {
             mergeFactor = parseDoubleSafe(typeParams[0], mergeFactor);
         }
-        AbstractBitmap source = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
-        return maker.getMaker().makeAutoLayerParameters(source, mergeFactor, progress);
+        return maker.makeAutoLayerProject(source, mergeFactor, progress);
     }
 
-    private static ReconstructionParameters makeMosaicFixedLayer(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicFixedLayer(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
         int layerCount = 3;
         if (typeParams.length > 0) {
             layerCount = parseIntegerSafe(typeParams[0], layerCount);
         }
-        AbstractBitmap source = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
-        return maker.getMaker().makeFixedLayerParameters(source, layerCount, progress);
+        return maker.makeFixedLayerProject(source, layerCount, progress);
     }
 
 
-    private static PatternReconstructor.PatternParameters makeMosaicCircle(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicCircle(String[] typeParams, ProgressCallback progress) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -223,11 +219,10 @@ public class SimpleConsole {
         if (typeParams.length > 1) {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
-        AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        return maker.getMaker().makePatternParameters(source, CirclePatternReconstructor.NAME, rows, columns, progress);
+        return new BitmapProject(new CirclesEffect(ColorSpace.Brightness.INSTANCE_WITH_ALPHA, rows, columns, Color.TRANSPARENT));
     }
 
-    private static PatternReconstructor.PatternParameters makeMosaicLego(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicLego(String[] typeParams, ProgressCallback progress) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -236,13 +231,10 @@ public class SimpleConsole {
         if (typeParams.length > 1) {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
-        AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        LegoPatternReconstructor.LegoParameters params = (LegoPatternReconstructor.LegoParameters) maker.getMaker().makePatternParameters(source, LegoPatternReconstructor.NAME, rows, columns, progress);
-        params.usePalettes = false;
-        return params;
+        return new BitmapProject(new LegoEffect(ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA, rows, columns, Color.TRANSPARENT, true));
     }
 
-    private static ReconstructionParameters makeMosaicRect(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicRect(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -251,11 +243,10 @@ public class SimpleConsole {
         if (typeParams.length > 1) {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
-        AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        return maker.getMaker().makeRectParameters(source, rows, columns, progress);
+        return maker.makeRectProject(source, rows, columns, progress);
     }
 
-    private static ReconstructionParameters makeMosaicMultiRect(String[] typeParams, File sourceFile, ProgressCallback progress, FileMosaicMaker maker) {
+    private static BitmapProject makeMosaicMultiRect(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
         int rows = 5;
         int columns = 5;
         double mergeFactor = 0.7;
@@ -268,8 +259,7 @@ public class SimpleConsole {
         if (typeParams.length > 2) {
             mergeFactor = parseDoubleSafe(typeParams[2], mergeFactor);
         }
-        AbstractBitmap source = maker.loadSourceFitByRowsColumns(sourceFile, rows, columns);
-        return maker.getMaker().makeMultiRectParameters(source, rows, columns, mergeFactor, progress);
+        return maker.makeMultiRectProject(source, rows, columns, mergeFactor, progress);
     }
 
     private static String saveMosaic(AbstractBitmap result, File targetFile) {

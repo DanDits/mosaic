@@ -121,23 +121,32 @@ public final class ColorAnalysisUtil {
 		int getColorOfCoordinates(int x, int y);
 	}
 
-	public static int getAverageColor(ColoredCoordinates colorCoords, int fromX, int toX, int fromY, int toY) {
-        long averageRed = 0, averageGreen = 0, averageBlue = 0, averageAlpha = 0;
+	public static double[] getAverageValues(ColoredCoordinates colorCoords, int fromX, int toX, int fromY, int toY,
+                                      ColorSpace space) {
+        double[] average = new double[space.getDimension()];
         for (int x = fromX; x < toX; x++) {
             for (int y = fromY; y < toY; y++) {
-                int rgba = colorCoords.getColorOfCoordinates(x, y);
-                averageRed += Color.red(rgba);
-                averageGreen += Color.green(rgba);
-                averageBlue += Color.blue(rgba);
-                averageAlpha += Color.alpha(rgba);
+                int argb = colorCoords.getColorOfCoordinates(x, y);
+                for (int i = 0; i < space.getDimension(); i++) {
+                    average[i] += space.getValue(argb, i);
+                }
             }
         }
         long pixels = (toX - fromX) * (toY - fromY);
-        if (pixels <= 0L) {
-            pixels = 1L;
+        pixels = pixels <= 0L ? 1 : pixels; // ensure no division by zero
+        for (int i = 0; i < space.getDimension(); i++) {
+            average[i] /= pixels;
         }
-        return Color.argb((int) (averageAlpha / pixels), (int) (averageRed / pixels), (int) (averageGreen / pixels), (int) (averageBlue / pixels));
+        return average;
+    }
 
+	public static int getAverageColor(ColoredCoordinates colorCoords, int fromX, int toX, int fromY, int toY,
+	                                  ColorSpace space) {
+        return space.valuesToArgb(getAverageValues(colorCoords, fromX, toX, fromY, toY, space));
+    }
+
+	public static int getAverageColor(ColoredCoordinates colorCoords, int fromX, int toX, int fromY, int toY) {
+        return getAverageColor(colorCoords, fromX, toX, fromY, toY, ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA);
     }
 
 	public static int getAverageColor(AbstractBitmap image, int fromX, int toX, int fromY, int toY) {

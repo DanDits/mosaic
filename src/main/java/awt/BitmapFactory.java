@@ -25,6 +25,7 @@ public class BitmapFactory extends AbstractBitmapFactory {
 
     public BitmapFactory(File file) {
         super(file);
+        this.type = DEFAULT_IMAGE_TYPE;
     }
 
     public void setImageType(int type) {
@@ -35,10 +36,11 @@ public class BitmapFactory extends AbstractBitmapFactory {
     public AbstractBitmap createBitmap() {
         if (file != null) {
             try {
-                BufferedImage image = Thumbnails.of(file).scale(1.).asBufferedImage();
+                BufferedImage image = Thumbnails.of(file).imageType(type).scale(1.).asBufferedImage();
                 if (image == null) {
                     return null;
                 }
+                Logger.info("Loaded image of type:" + image.getType());
                 return new Bitmap(image);
             } catch (UnsupportedFormatException format) {
                 Logger.error("Not an image file: {}", file);
