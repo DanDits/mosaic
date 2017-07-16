@@ -15,7 +15,7 @@ import java.io.IOException;
  * Created by dd on 03.06.17.
  */
 public class BitmapFactory extends AbstractBitmapFactory {
-    public static final int DEFAULT_IMAGE_TYPE = BufferedImage.TYPE_INT_ARGB;
+    private static final int DEFAULT_IMAGE_TYPE = BufferedImage.TYPE_INT_ARGB;
     private int type;
 
     public BitmapFactory(int width, int height) {

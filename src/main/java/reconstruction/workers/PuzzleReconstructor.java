@@ -131,9 +131,9 @@ public class PuzzleReconstructor extends Reconstructor {
 
     private void createNoses() {
         noseHorizontalRight = createNose(getPuzzleHorizontalNoseLength(), (int) (NOSE_THICKNESS_FRACTION * rectHeight), rectHeight, true);
-        noseHorizontalLeft = noseHorizontalRight.getRotatedCopy(180);
+        noseHorizontalLeft = noseHorizontalRight.obtainRotated(180);
         noseVerticalDown = createNose((int) (NOSE_THICKNESS_FRACTION * rectWidth), getPuzzleVerticalNoseLength(), rectWidth, false);
-        noseVerticalUp = noseVerticalDown.getRotatedCopy(180);
+        noseVerticalUp = noseVerticalDown.obtainRotated(180);
         AbstractBitmap buffer1 = AbstractBitmapFactory.makeInstance(noseHorizontalRight.getWidth(), noseHorizontalRight.getHeight()).createBitmap();
         noseBufferHorizontal = AbstractCanvasFactory.getInstance().makeCanvas(buffer1);
         AbstractBitmap buffer2 = AbstractBitmapFactory.makeInstance(noseVerticalDown.getWidth(), noseVerticalDown.getHeight()).createBitmap();
@@ -189,7 +189,7 @@ public class PuzzleReconstructor extends Reconstructor {
         canvas.floodFill(noseWidth - 1, noseHeight - 1, Color.TRANSPARENT);
         AbstractBitmap nose = canvas.obtainImage();
         if (!horizontal) {
-            return nose.getRotatedCopy(90);
+            return nose.obtainRotated(90);
         }
         return canvas.obtainImage();
 

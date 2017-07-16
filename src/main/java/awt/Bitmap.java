@@ -15,9 +15,12 @@ import java.io.IOException;
  * Created by dd on 03.06.17.
  */
 public class Bitmap implements AbstractBitmap {
+    private static final String TYPE_PNG = "png";
+    private static final String TYPE_JPG = "jpg";
+    private static final String TYPE_GIF = "gif";
     private BufferedImage image;
 
-    public Bitmap(BufferedImage image) {
+    Bitmap(BufferedImage image) {
         this.image = image;
         if (image == null) {
             throw new NullPointerException("Image null.");
@@ -38,12 +41,12 @@ public class Bitmap implements AbstractBitmap {
     }
 
     @Override
-    public AbstractBitmap getRotatedCopy(double degree) {
+    public AbstractBitmap obtainRotated(double degree) {
         try {
             return new Bitmap(Thumbnails.of(image).scale(1.).rotate(degree).asBufferedImage());
         } catch (IOException e) {
             Logger.error("Some error rotating: {}", e); // should not happen was we do not load/save the image
-            throw new IllegalArgumentException("Could not rotate.");
+            throw new AssertionError(e);
         }
     }
 
@@ -77,20 +80,20 @@ public class Bitmap implements AbstractBitmap {
 
     @Override
     public boolean saveToFile(File file) throws IOException {
-        String type = "png";
+        String type = TYPE_PNG; // default
         int dotIndex = file.getName().lastIndexOf(".");
         if (dotIndex >= 0) {
             switch (file.getName().substring(dotIndex).toLowerCase()) {
-                case "jpg":
+                case TYPE_JPG:
                 case "jpeg":
-                    type = "jpg";
+                    type = TYPE_JPG;
                     break;
-                case "gif":
-                    type = "gif";
+                case TYPE_GIF:
+                    type = TYPE_GIF;
                     break;
                 default:
-                case "png":
-                    type = "png";
+                case TYPE_PNG:
+                    type = TYPE_PNG;
                     break;
             }
         }

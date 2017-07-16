@@ -4,6 +4,9 @@ import assembling.BitmapProject;
 import assembling.MosaicMaker;
 import assembling.ProgressCallback;
 import assembling.ReconstructorAssemblor;
+import data.export.AbstractBitmapExporter;
+import data.export.BitmapExportException;
+import data.export.FileBitmapExporter;
 import data.image.AbstractBitmap;
 import data.image.AbstractBitmapFactory;
 import data.storage.MosaicTile;
@@ -14,7 +17,6 @@ import util.image.Color;
 import util.image.ColorSpace;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -123,21 +125,20 @@ public class SimpleConsole {
                 }
             }
         };
-        AbstractBitmap result = makeMosaic(mosaicType, typeParams, sourceFile, analyzationFiles, progress);
-        return saveMosaic(result, targetFile);
+        AbstractBitmapExporter exporter = new FileBitmapExporter(targetFile);
+        return makeMosaic(mosaicType, typeParams, sourceFile, analyzationFiles, progress, exporter);
     }
 
-    private static AbstractBitmap makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, ProgressCallback progress) {
+    private static String makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, ProgressCallback progress, AbstractBitmapExporter exporter) {
         Collection<MosaicTile<String>> tiles = ReconstructorAssemblor.loadTilesFromFiles(analyzationFiles);
         MosaicMaker<String> maker = new MosaicMaker<>(new FileBitmapSource(), ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA,
-                                                      tiles);
+                                                      tiles, exporter);
         AbstractBitmap source = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
         if (source == null) {
             Logger.error("Could not load image from file: {}", sourceFile);
-            return null;
+            return "Source image invalid.";
         }
-        BitmapProject project = null;
-        AbstractBitmap result = null;
+        BitmapProject project;
         switch (mosaicType) {
             case "rect":
                 project = makeMosaicRect(typeParams, source, progress, maker);
@@ -152,10 +153,10 @@ public class SimpleConsole {
                 project = makeMosaicAutoLayer(typeParams, source, progress, maker);
                 break;
             case "circle":
-                project = makeMosaicCircle(typeParams, progress);
+                project = makeMosaicCircle(typeParams, progress, exporter);
                 break;
             case "lego":
-                project = makeMosaicLego(typeParams, progress);
+                project = makeMosaicLego(typeParams, progress, exporter);
                 break;
             case "puzzle":
                 project = makeMosaicPuzzle(typeParams, source, progress, maker);
@@ -164,13 +165,19 @@ public class SimpleConsole {
                 project = makeMosaicSVD(typeParams, source, progress, maker);
                 break;
             default:
-                System.out.println("Unknown mosaic type " + mosaicType);
-                break;
+                Logger.error("Unknown mosaic type {}.", mosaicType);
+                return "Unknown mosaic type";
         }
         if (project != null) {
-            result = project.build(source).orElse(null);
+            try {
+                project.build(source);
+            } catch (BitmapExportException e) {
+                Logger.error("Failed exporting image: {}", e);
+                return "Could not save result.";
+            }
+            return "Successfully created mosaic.";
         }
-        return result;
+        return "";
     }
 
     private static BitmapProject makeMosaicPuzzle(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
@@ -210,7 +217,7 @@ public class SimpleConsole {
     }
 
 
-    private static BitmapProject makeMosaicCircle(String[] typeParams, ProgressCallback progress) {
+    private static BitmapProject makeMosaicCircle(String[] typeParams, ProgressCallback progress, AbstractBitmapExporter exporter) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -219,10 +226,10 @@ public class SimpleConsole {
         if (typeParams.length > 1) {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
-        return new BitmapProject(new CirclesEffect(ColorSpace.Brightness.INSTANCE_WITH_ALPHA, rows, columns, Color.TRANSPARENT));
+        return new BitmapProject(new CirclesEffect(ColorSpace.Brightness.INSTANCE_WITH_ALPHA, rows, columns, Color.TRANSPARENT), exporter);
     }
 
-    private static BitmapProject makeMosaicLego(String[] typeParams, ProgressCallback progress) {
+    private static BitmapProject makeMosaicLego(String[] typeParams, ProgressCallback progress, AbstractBitmapExporter exporter) {
         int rows = 5;
         int columns = 5;
         if (typeParams.length > 0) {
@@ -231,7 +238,8 @@ public class SimpleConsole {
         if (typeParams.length > 1) {
             columns = parseIntegerSafe(typeParams[1], columns);
         }
-        return new BitmapProject(new LegoEffect(ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA, rows, columns, Color.TRANSPARENT, true));
+        return new BitmapProject(new LegoEffect(ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA, rows, columns, Color.TRANSPARENT, true),
+                                 exporter);
     }
 
     private static BitmapProject makeMosaicRect(String[] typeParams, AbstractBitmap source, ProgressCallback progress, MosaicMaker<String> maker) {
@@ -262,23 +270,6 @@ public class SimpleConsole {
         return maker.makeMultiRectProject(source, rows, columns, mergeFactor, progress);
     }
 
-    private static String saveMosaic(AbstractBitmap result, File targetFile) {
-        if (result != null) {
-            boolean saving;
-            try {
-                saving = result.saveToFile(targetFile);
-            } catch (IOException e) {
-                return "Error saving file: " + e;
-            }
-            if (!saving) {
-                return "Failed saving file.";
-            }
-            return "Successfully created mosaic at " + targetFile;
-        }
-        return "Failed creating mosaic!";
-    }
-
-
     private static String doAnalyzation(String path, String savePath) {
         File file = new File(path);
         File saveFile = new File(savePath);
@@ -295,12 +286,5 @@ public class SimpleConsole {
                 return "Directory does not exist.";
             }
         }
-    }
-
-    private static String fetchCommand() {
-        System.out.print("Enter command: ");
-        String input = in.next();
-        System.err.println("Entered: " + input);
-        return input;
     }
 }

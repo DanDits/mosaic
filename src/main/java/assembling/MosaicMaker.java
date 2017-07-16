@@ -15,6 +15,7 @@
 
 package assembling;
 
+import data.export.AbstractBitmapExporter;
 import data.image.AbstractBitmap;
 import data.image.BitmapSource;
 import data.storage.MosaicTile;
@@ -31,17 +32,21 @@ import java.util.Objects;
 
 public class MosaicMaker<S> {
 	private final BitmapSource<S> bitmapSource;
-	private TileMatcher<S> matcher;
+    private final AbstractBitmapExporter exporter;
+    private TileMatcher<S> matcher;
 	private ColorSpace space;
 	private Collection<MosaicTile<S>> tiles;
 
 
-    public MosaicMaker(BitmapSource<S> bitmapSource, ColorSpace space, Collection<MosaicTile<S>> tiles) {
+    public MosaicMaker(BitmapSource<S> bitmapSource, ColorSpace space, Collection<MosaicTile<S>> tiles,
+                       AbstractBitmapExporter exporter) {
 		Objects.requireNonNull(bitmapSource);
+		Objects.requireNonNull(exporter);
 		this.tiles = tiles;
         setMatcherAutomatically();
 		setColorSpace(space);
 		this.bitmapSource = bitmapSource;
+		this.exporter = exporter;
 	}
 
     private void setMatcherAutomatically() {
@@ -65,7 +70,7 @@ public class MosaicMaker<S> {
     }
 
     private BitmapProject makeReconstructorProject(ReconstructionParameters parameters, ProgressCallback callback) {
-        return new BitmapProject(ReconstructorAssemblor.makeEffect(matcher, bitmapSource, parameters, callback));
+        return new BitmapProject(ReconstructorAssemblor.makeEffect(matcher, bitmapSource, parameters, callback), exporter);
     }
 
     public BitmapProject makeMultiRectProject(AbstractBitmap source, int wantedRows, int wantedColumns, double mergeFactor, ProgressCallback progress) {
@@ -115,6 +120,6 @@ public class MosaicMaker<S> {
     }
 
     public BitmapProject makeSVD(AbstractBitmap source, double mergeFactor, ProgressCallback progress) {
-        return new BitmapProject(SVDAssemblor.makeEffect(SVDMaker.MODE_RGB_SPLIT, mergeFactor, progress));
+        return new BitmapProject(SVDAssemblor.makeEffect(SVDMaker.MODE_RGB_SPLIT, mergeFactor, progress), exporter);
     }
 }

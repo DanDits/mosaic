@@ -24,5 +24,5 @@ public interface AbstractBitmap {
     default ImageResolution getResolution() {
         return new ImageResolution(getWidth(), getHeight());
     }
-    AbstractBitmap getRotatedCopy(double degree);
+    AbstractBitmap obtainRotated(double degree);
 }
