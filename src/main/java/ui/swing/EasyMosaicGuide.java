@@ -1,15 +1,21 @@
 package ui.swing;
 
+import ui.swing.controller.EasyMosaicController;
+import ui.swing.controller.SourcesDirectory;
+import ui.swing.controller.SourcesDirectoryChangeListener;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 /**
  * Created by dd on 29.06.17.
  */
-public class EasyMosaicGuide {
+public class EasyMosaicGuide implements SourcesDirectoryChangeListener {
     private EasyMosaicController controller;
     private JPanel mosaic_file_panel;
     private JPanel reconstructor_panel;
@@ -30,7 +36,9 @@ public class EasyMosaicGuide {
     private JPanel contentPane;
     private JSlider fineToRoughSlider;
     private JButton saveButton;
-    private JScrollPane imagePoolContainerScrollPane;
+    private JScrollPane sourcesDirectoryContainerScrollPane;
+    private JPanel sourcesDirectoryContainer;
+    private ArrayList<SourcesDirectoryPanel> sourcesDiretoryPanes = new ArrayList<>();
 
     private EasyMosaicGuide() {
         controller = new EasyMosaicController();
@@ -44,7 +52,11 @@ public class EasyMosaicGuide {
         chooseDirectoryButton.addActionListener(actionEvent -> chooseDirectory());
         initFineRoughSlider();
         mosaic_main_info_text.setFont(new Font(mosaic_main_info_text.getFont().getFontName(), Font.BOLD, 25));
-        imagePoolContainerScrollPane.getViewport().setOpaque(false);
+        sourcesDirectoryContainerScrollPane.getViewport().setOpaque(false);
+        sourcesDirectoryContainer = new JPanel();
+        sourcesDirectoryContainer.setLayout(new GridLayout(0, 1));
+        sourcesDirectoryContainer.setOpaque(false);
+        sourcesDirectoryContainerScrollPane.getViewport().add(sourcesDirectoryContainer);
     }
 
     private static void addSimpleBorder(JComponent comp) {
@@ -69,7 +81,7 @@ public class EasyMosaicGuide {
         int returnValue = jfc.showOpenDialog(null);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = jfc.getSelectedFiles();
-            controller.chooseSourcesDirectories(selectedFiles);
+            controller.chooseSourcesDirectories(selectedFiles, this);
         }
     }
 
@@ -114,7 +126,75 @@ public class EasyMosaicGuide {
     }
 
     private void createUIComponents() {
-        // TODO: place custom component creation code here
     }
 
+    private int getSourcesDirectoryIndex(SourcesDirectoryPanel pane) {
+        int index = 0;
+        for (Component component : sourcesDirectoryContainer.getComponents()) {
+            if (pane.getContentPane() == component) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
+    @Override
+    public void onSourcesDirectoryCreated(SourcesDirectory directory, int index) {
+        System.out.println("Directory created:" + directory);
+        final SourcesDirectoryPanel pane = new SourcesDirectoryPanel();
+        sourcesDirectoryContainer.add(pane.getContentPane(), index);
+        sourcesDiretoryPanes.add(index, pane);
+        boolean loaded = directory.isLoaded();
+        pane.getLoadingContent().setVisible(!loaded);
+        pane.getLoadedContent().setVisible(loaded);
+        updatePanelText(pane, directory);
+        pane.getActiveCheckBox().addItemListener(itemEvent -> controller.setSourcesDirectoryActive(getSourcesDirectoryIndex(pane),
+                                                                                                   itemEvent.getStateChange() == ItemEvent.SELECTED));
+        updatePanelActiveState(pane, directory);
+        pane.getDeleteButton().addActionListener(actionEvent -> controller.removeSourcesDirectory(getSourcesDirectoryIndex(pane)));
+
+        pane.getCancelLoadingButton().addActionListener(actionEvent -> controller.cancelLoadDirectory(getSourcesDirectoryIndex(pane)));
+        sourcesDirectoryContainer.revalidate();
+        sourcesDirectoryContainer.repaint();
+        if (!loaded) {
+            pane.getLoadingBar().setToolTipText(directory.getDescription());
+            controller.loadDirectory(index, progress -> pane.getLoadingBar().setValue(progress));
+        }
+    }
+
+    private void updatePanelActiveState(SourcesDirectoryPanel pane, SourcesDirectory directory) {
+        pane.getActiveCheckBox().setSelected(directory.isActive());
+    }
+
+    private void updatePanelText(SourcesDirectoryPanel pane, SourcesDirectory directory) {
+        pane.getDescriptionText().setText(directory.getDescription());
+    }
+
+    private SourcesDirectoryPanel getSourceDirectoryPanel(int index) {
+        return sourcesDiretoryPanes.get(index);
+    }
+
+    @Override
+    public void onSourcesDirectoryStatusChange(SourcesDirectory directory, int index) {
+        System.out.println("Directory changed status:" + directory);
+        SourcesDirectoryPanel panel = getSourceDirectoryPanel(index);
+        updatePanelText(panel, directory);
+        updatePanelActiveState(panel, directory);
+        if (directory.isLoaded()) {
+            panel.getLoadingContent().setVisible(false);
+            panel.getLoadedContent().setVisible(true);
+        }
+        sourcesDirectoryContainer.revalidate();
+        sourcesDirectoryContainer.repaint();
+    }
+
+    @Override
+    public void onSourcesDirectoryRemoved(SourcesDirectory directory, int previousIndex) {
+        System.out.println("Directory removed:" + directory);
+        sourcesDirectoryContainer.remove(previousIndex);
+        sourcesDiretoryPanes.remove(previousIndex);
+        sourcesDirectoryContainer.revalidate();
+        sourcesDirectoryContainer.repaint();
+    }
 }

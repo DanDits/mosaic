@@ -3,6 +3,7 @@ package assembling;
 import data.bitmapMatrix.*;
 import data.image.AbstractBitmap;
 import util.PercentProgressListener;
+import util.ProgressCallback;
 import util.jama.Matrix;
 import util.jama.SingularValueDecomposition;
 

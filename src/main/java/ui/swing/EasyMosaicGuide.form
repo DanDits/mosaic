@@ -165,7 +165,7 @@
                   <text value="Ordner wählen"/>
                 </properties>
               </component>
-              <scrollpane id="7f4c5" binding="imagePoolContainerScrollPane">
+              <scrollpane id="7f4c5" binding="sourcesDirectoryContainerScrollPane">
                 <constraints>
                   <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>

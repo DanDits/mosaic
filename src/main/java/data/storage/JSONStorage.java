@@ -5,6 +5,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.pmw.tinylog.Logger;
+import util.PercentProgressListener;
 
 import java.io.*;
 import java.util.Collection;
@@ -25,7 +26,7 @@ public class JSONStorage<S> {
         return save(file, root);
     }
 
-    public Set<MosaicTile<S>> loadFromJSON(File file, TileBuilder<S> builder) {
+    public Set<MosaicTile<S>> loadFromJSON(File file, TileBuilder<S> builder, PercentProgressListener updater) {
         JSONParser parser = new JSONParser();
 
         Set<MosaicTile<S>> tiles = new HashSet<>();
@@ -35,10 +36,14 @@ public class JSONStorage<S> {
 
             JSONObject root = (JSONObject) obj;
             JSONArray allTiles = (JSONArray) root.get("tiles");
+            int count = 0;
             for (Object tileObj : allTiles) {
                 MosaicTile<S> tile = readFromJson((JSONObject) tileObj, builder);
                 if (tile != null) {
                     tiles.add(tile);
+                }
+                if (updater != null) {
+                    updater.onProgressUpdate((int) (100 * count / (double) allTiles.size()));
                 }
             }
         } catch (FileNotFoundException fnf) {

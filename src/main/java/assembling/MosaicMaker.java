@@ -24,6 +24,8 @@ import matching.workers.FastMatcher;
 import matching.workers.SimpleLinearTileMatcher;
 import reconstruction.ReconstructionParameters;
 import reconstruction.workers.*;
+import util.MultiStepProgressCallback;
+import util.ProgressCallback;
 import util.image.ColorSpace;
 
 import java.util.Collection;

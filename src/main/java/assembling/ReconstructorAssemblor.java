@@ -12,6 +12,7 @@ import reconstruction.ReconstructionParameters;
 import reconstruction.Reconstructor;
 import ui.FileMosaicJSONBuilder;
 import util.PercentProgressListener;
+import util.ProgressCallback;
 
 import java.io.File;
 import java.util.*;
@@ -31,8 +32,9 @@ public class ReconstructorAssemblor {
         return callback != null && callback.isCancelled();
     }
 
-    public static Collection<MosaicTile<String>> loadTilesFromFiles(List<File> analyzationFiles) {
-        Set<MosaicTile<String>> tiles = analyzationFiles.stream().map(FileMosaicJSONBuilder::loadExistingTiles)
+    public static Collection<MosaicTile<String>> loadTilesFromFiles(List<File> analyzationFiles,
+                                                                    PercentProgressListener updater) {
+        Set<MosaicTile<String>> tiles = analyzationFiles.stream().map(saveFile -> FileMosaicJSONBuilder.loadExistingTiles(saveFile, updater))
                                                           .flatMap(Set::stream).collect(Collectors.toSet());
 
         Logger.info("Loaded {} tiles from {} analyzation files.", tiles.size(), analyzationFiles.size());

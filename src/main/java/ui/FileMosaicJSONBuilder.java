@@ -1,8 +1,9 @@
 package ui;
 
-import data.storage.MosaicTile;
 import data.storage.JSONStorage;
+import data.storage.MosaicTile;
 import data.storage.TileBuilder;
+import util.PercentProgressListener;
 
 import java.io.File;
 import java.util.Set;
@@ -19,8 +20,8 @@ public class FileMosaicJSONBuilder extends TileBuilder<String> {
         return new FileMosaicTile(source, averageARGB, width, height);
     }
 
-    public static Set<MosaicTile<String>> loadExistingTiles(File saveFile) {
-        Set<MosaicTile<String>> tiles = new JSONStorage<String>().loadFromJSON(saveFile, INSTANCE);
+    public static Set<MosaicTile<String>> loadExistingTiles(File saveFile, PercentProgressListener updater) {
+        Set<MosaicTile<String>> tiles = new JSONStorage<String>().loadFromJSON(saveFile, INSTANCE, updater);
         tiles = tiles.stream().filter(tile -> new File(tile.getSource()).exists())
                 .collect(Collectors.toSet());
         return tiles;

@@ -2,7 +2,7 @@ package ui;
 
 import assembling.BitmapProject;
 import assembling.MosaicMaker;
-import assembling.ProgressCallback;
+import util.ProgressCallback;
 import assembling.ReconstructorAssemblor;
 import data.export.AbstractBitmapExporter;
 import data.export.BitmapExportException;
@@ -130,7 +130,7 @@ public class SimpleConsole {
     }
 
     private static String makeMosaic(String mosaicType, String[] typeParams, File sourceFile, List<File> analyzationFiles, ProgressCallback progress, AbstractBitmapExporter exporter) {
-        Collection<MosaicTile<String>> tiles = ReconstructorAssemblor.loadTilesFromFiles(analyzationFiles);
+        Collection<MosaicTile<String>> tiles = ReconstructorAssemblor.loadTilesFromFiles(analyzationFiles, null);
         MosaicMaker<String> maker = new MosaicMaker<>(new FileBitmapSource(), ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA,
                                                       tiles, exporter);
         AbstractBitmap source = AbstractBitmapFactory.makeInstance(sourceFile).createBitmap();
@@ -274,9 +274,9 @@ public class SimpleConsole {
         File file = new File(path);
         File saveFile = new File(savePath);
         if (file.isDirectory()) {
-            Set<MosaicTile<String>> tiles = FileMosaicJSONBuilder.loadExistingTiles(saveFile);
+            Set<MosaicTile<String>> tiles = FileMosaicJSONBuilder.loadExistingTiles(saveFile, null);
 
-            Set<MosaicTile<String>> allTiles = FileMosaicAnalyzer.analyze(tiles, file, saveFile);
+            Set<MosaicTile<String>> allTiles = FileMosaicAnalyzer.analyze(tiles, file, saveFile, null);
             return "Successfully analyzed " + (allTiles.size() - tiles.size()) + " new tiles and saved "
                     + allTiles.size() + " tiles!";
         } else {

@@ -1,6 +1,4 @@
-package assembling;
-
-import util.MultistepPercentProgressListener;
+package util;
 
 /**
  * Created by dd on 28.06.17.
@@ -11,6 +9,11 @@ public class MultiStepProgressCallback extends MultistepPercentProgressListener 
 
     public MultiStepProgressCallback(ProgressCallback callback, int steps) {
         super(callback, steps);
+        mCallback = callback;
+    }
+
+    public MultiStepProgressCallback(ProgressCallback callback, double[] weights) {
+        super(callback, weights);
         mCallback = callback;
     }
 

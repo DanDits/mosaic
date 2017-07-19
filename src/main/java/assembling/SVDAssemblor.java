@@ -2,6 +2,7 @@ package assembling;
 
 import data.image.AbstractBitmap;
 import effects.BitmapEffect;
+import util.ProgressCallback;
 
 import java.util.Optional;
 
