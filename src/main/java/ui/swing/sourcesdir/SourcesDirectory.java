@@ -1,4 +1,4 @@
-package ui.swing.controller;
+package ui.swing.sourcesdir;
 
 import data.storage.MosaicTile;
 import ui.FileMosaicAnalyzer;
