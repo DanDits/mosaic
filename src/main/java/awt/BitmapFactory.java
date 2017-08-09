@@ -40,10 +40,10 @@ public class BitmapFactory extends AbstractBitmapFactory {
                 if (image == null) {
                     return null;
                 }
-                Logger.info("Loaded image of type:" + image.getType());
+                Logger.trace("Loaded image of type:" + image.getType());
                 return new Bitmap(image);
             } catch (UnsupportedFormatException format) {
-                Logger.error("Not an image file: {}", file);
+                Logger.trace("Not an image file: {}", file);
                 return null;
             } catch (IOException e) {
                 e.printStackTrace();

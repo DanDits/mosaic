@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -22,10 +23,18 @@ import static java.nio.file.FileVisitResult.CONTINUE;
  */
 public class FileMosaicAnalyzer {
 
-    private FileMosaicAnalyzer() {}
+    private final Set<MosaicTile<String>> resultTiles;
+    private final Set<String> ignoreKeys;
 
-    public static Set<MosaicTile<String>> analyze(Collection<MosaicTile<String>> prevTiles, File analyzeDirectory,
-                                                  File savePath, ProgressCallback updateCallback) {
+    public FileMosaicAnalyzer(Collection<MosaicTile<String>> previousTiles) {
+        Collection<MosaicTile<String>> previousTiles1 = Optional.ofNullable(previousTiles).orElse(Collections.emptyList());
+        resultTiles = new HashSet<>(previousTiles1);
+        ignoreKeys = previousTiles.stream()
+                                  .map(MosaicTile::getSource)
+                                  .collect(Collectors.toSet());
+    }
+
+    public Set<MosaicTile<String>> analyze(File analyzeDirectory, File savePath, ProgressCallback updateCallback) {
         if (!analyzeDirectory.isDirectory()) {
             throw new IllegalArgumentException("No directory:" + analyzeDirectory);
         }
@@ -36,23 +45,22 @@ public class FileMosaicAnalyzer {
         if (updateCallback != null) {
             estimatedFilesCount = FileMosaicAnalyzer.estimateContainedImageFiles(analyzeDirectory, updateCallback);
         }
-        ImageVisitor visitor = new ImageVisitor(updateCallback, estimatedFilesCount);
+
+        ImageVisitor visitor = new ImageVisitor(updateCallback, estimatedFilesCount, ignoreKeys);
         try {
             traverseDirectory(analyzeDirectory, visitor);
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed traversing directory:" + analyzeDirectory);
         }
-        if (prevTiles != null) {
-            visitor.tiles.addAll(prevTiles);
-        }
-        if (saveTiles(visitor.tiles, savePath)) {
-            return visitor.tiles;
+        resultTiles.addAll(visitor.tiles);
+        if (saveTiles(resultTiles, savePath)) {
+            return resultTiles;
         } else {
-            throw new IllegalArgumentException("Failed saving " + visitor.tiles.size() + " tiles to path:" + savePath);
+            throw new IllegalArgumentException("Failed saving " + resultTiles.size() + " tiles to path:" + savePath);
         }
     }
 
-    public static int estimateContainedImageFiles(File analyzeDirectory, ProgressCallback updateCallback) {
+    private static int estimateContainedImageFiles(File analyzeDirectory, ProgressCallback updateCallback) {
         ImageFileCountEstimationVisitor visitor = new ImageFileCountEstimationVisitor(updateCallback);
         try {
             traverseDirectory(analyzeDirectory, visitor);
@@ -81,7 +89,7 @@ public class FileMosaicAnalyzer {
 
         private int fileCount;
 
-        public ImageFileCountEstimationVisitor(ProgressCallback updateCallback) {
+        ImageFileCountEstimationVisitor(ProgressCallback updateCallback) {
             this.updateCallback = updateCallback;
         }
 
@@ -108,12 +116,14 @@ public class FileMosaicAnalyzer {
     private static class ImageVisitor extends SimpleFileVisitor<Path> {
         private final int estimatedFilesCount;
         private final ProgressCallback updateCallback;
+        private final Set<String> ignoreKeys;
         private Set<MosaicTile<String>> tiles = new HashSet<>();
         private int count;
 
-        public ImageVisitor(ProgressCallback updater, int estimatedFilesCount) {
+        ImageVisitor(ProgressCallback updater, int estimatedFilesCount, Set<String> ignoreKeys) {
             this.updateCallback = updater;
             this.estimatedFilesCount = estimatedFilesCount;
+            this.ignoreKeys = ignoreKeys;
         }
 
         @Override
@@ -125,15 +135,21 @@ public class FileMosaicAnalyzer {
             if (attr.isRegularFile()) {
                 try {
                     File file = path.toFile();
-                    AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(file).createBitmap();
-                    if (bitmap != null) {
-                        int color = ColorAnalysisUtil.getAverageColor(bitmap);
-                        tiles.add(new FileMosaicTile(file.getCanonicalPath(), color, bitmap.getWidth(), bitmap.getHeight()));
-                        if (updateCallback != null && estimatedFilesCount > 0) {
-                            count++;
-                            updateCallback.onProgressUpdate((int) (100 * count / (double) estimatedFilesCount));
-                        }
-                    } // else not an image file
+                    String key = file.getCanonicalPath();
+                    boolean isHit = true;
+                    if (!ignoreKeys.contains(key)) {
+                        isHit = false;
+                        AbstractBitmap bitmap = AbstractBitmapFactory.makeInstance(file).createBitmap();
+                        if (bitmap != null) {
+                            isHit = true;
+                            MosaicTile<String> tile = getMosaicTile(key, bitmap);
+                            tiles.add(tile);
+                        } // else not an image file
+                    }
+                    if (isHit && updateCallback != null && estimatedFilesCount > 0) {
+                        count++;
+                        updateCallback.onProgressUpdate((int) (100 * count / (double) estimatedFilesCount));
+                    }
                 } catch (IOException e) {
                     Logger.error("Could not read image file {}", e);
                 }
@@ -151,5 +167,10 @@ public class FileMosaicAnalyzer {
             }
             return CONTINUE;
         }
+    }
+
+    private static MosaicTile<String> getMosaicTile(String key, AbstractBitmap bitmap) throws IOException {
+        int color = ColorAnalysisUtil.getAverageColor(bitmap);
+        return new FileMosaicTile(key, color, bitmap.getWidth(), bitmap.getHeight());
     }
 }

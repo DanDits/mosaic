@@ -11,7 +11,6 @@ import java.util.Set;
  * Created by dd on 19.07.17.
  */
 public class SourcesPanel implements SourcesDirectoryChangeListener {
-    private JTextField sourcesStatusText;
     private JButton chooseDirectoryButton;
     private JScrollPane sourcesDirectoryContainerScrollPane;
     private JPanel sourcesDirectoryContainer;
@@ -37,7 +36,6 @@ public class SourcesPanel implements SourcesDirectoryChangeListener {
             controller.chooseSourcesDirectories(selectedFiles, this);
         }
     }
-    // TODO colors: http://paletton.com/#uid=73f0x0kimmu8oy6dlrnmsirrSd3
 
     private SourcesDirectoryPanel getSourcesDirectoryPanel(SourcesDirectory directory) {
         for (SourcesDirectoryPanel panel : panels) {

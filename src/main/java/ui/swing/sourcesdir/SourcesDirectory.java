@@ -94,7 +94,8 @@ public class SourcesDirectory {
             if (updater.isCancelled()) {
                 return;
             }
-            Set<MosaicTile<String>> all = FileMosaicAnalyzer.analyze(tiles, file, cacheFile, updater);
+            FileMosaicAnalyzer analyzer = new FileMosaicAnalyzer(tiles);
+            Set<MosaicTile<String>> all = analyzer.analyze(file, cacheFile, updater);
             if (updater.isCancelled()) {
                 return;
             }

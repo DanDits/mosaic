@@ -44,7 +44,10 @@ public class SourcesDirectoryPanel {
     }
 
     private void updateActiveState() {
-        activeCheckBox.setSelected(directory.isActive());
+        boolean active = directory.isActive();
+        activeCheckBox.setSelected(active);
+        descriptionText.setFocusable(active);
+        descriptionText.setEnabled(active);
     }
 
     JPanel getContentPane() {

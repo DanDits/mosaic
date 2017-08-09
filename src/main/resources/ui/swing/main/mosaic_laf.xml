@@ -1,0 +1,33 @@
+<synth>
+    <!-- Colors checkout: colors: http://paletton.com/#uid=73f0x0kimmu8oy6dlrnmsirrSd3 -->
+    <style id="basicStyle">
+        <opaque value="true"/>
+        <font name="Verdana" size="16"/>
+        <state>
+            <color value="#4F8781" type="BACKGROUND"/>
+            <color value="WHITE" type="FOREGROUND"/>
+        </state>
+    </style>
+
+    <bind style="basicStyle" type="region" key=".*"/>
+
+    <style id="buttonStyle">
+        <opaque value="true" />
+        <state value="ENABLED">
+            <color value="#2F6F68" type="BACKGROUND" />
+        </state>
+        <state value="DISABLED">
+            <color value="#7AA5A0" type="BACKGROUND" />
+        </state>
+        <state value="PRESSED">
+            <color value="#08413B" type="BACKGROUND" />
+        </state>
+        <state value="MOUSE_OVER">
+            <color value="#1B5B54" type="BACKGROUND" />
+        </state>
+        <state value="FOCUSED">
+            <color value="#4F8781" type="BACKGROUND" />
+        </state>
+    </style>
+    <bind style="buttonStyle" type="region" key="Button"/>
+</synth>

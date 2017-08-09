@@ -1,8 +1,11 @@
 package ui.swing.main;
 
+import com.jtattoo.plaf.smart.SmartLookAndFeel;
+import ui.swing.effect.EffectSelectionPanel;
 import ui.swing.sourcesdir.SourcesPanel;
 
 import javax.swing.*;
+import javax.swing.plaf.synth.SynthLookAndFeel;
 import java.awt.*;
 import java.util.Hashtable;
 
@@ -15,8 +18,7 @@ public class EasyMosaicGuide {
     private JPanel reconstructor_panel;
     private JTextField mosaic_main_info_text;
     private JPanel sourcesContainer;
-    private JTextField effect_main_info_text;
-    private JPanel main_effect_panel;
+    private JPanel effect_selection_container;
     private JPanel options;
     private JTextField mosaicCreationStatusTextField;
     private JButton chooseSourceImageButton;
@@ -29,18 +31,30 @@ public class EasyMosaicGuide {
     private JSlider fineToRoughSlider;
     private JButton saveButton;
     private SourcesPanel sourcesPanel;
+    private EffectSelectionPanel effectSelectionPanel;
 
     private EasyMosaicGuide() {
         controller = new EasyMosaicController();
         addSimpleBorder(options);
         addSimpleBorder(sourcesContainer);
-        addSimpleBorder(main_effect_panel);
+        addSimpleBorder(effect_selection_container);
 
         initNoDuplicates();
         initMatcherOptions();
 
         initFineRoughSlider();
         mosaic_main_info_text.setFont(new Font(mosaic_main_info_text.getFont().getFontName(), Font.BOLD, 25));
+        initSourcesPanel();
+        initEffectsPanel();
+    }
+
+    private void initEffectsPanel() {
+        effectSelectionPanel = new EffectSelectionPanel();
+        effect_selection_container.setLayout(new GridLayout(1, 1));
+        effect_selection_container.add(effectSelectionPanel.getContentPane());
+    }
+
+    private void initSourcesPanel() {
         sourcesPanel = new SourcesPanel();
         sourcesContainer.setLayout(new GridLayout(1, 1));
         sourcesContainer.add(sourcesPanel.getContentPane());
@@ -94,6 +108,13 @@ public class EasyMosaicGuide {
     }
 
     public static void main(String[] args) {
+        SynthLookAndFeel laf = new SynthLookAndFeel();
+        try {
+            UIManager.setLookAndFeel(new SmartLookAndFeel());
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+
         JFrame frame = new JFrame("Mosaic-chen");
         frame.setContentPane(new EasyMosaicGuide().contentPane);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

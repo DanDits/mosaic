@@ -276,7 +276,8 @@ public class SimpleConsole {
         if (file.isDirectory()) {
             Set<MosaicTile<String>> tiles = FileMosaicJSONBuilder.loadExistingTiles(saveFile, null);
 
-            Set<MosaicTile<String>> allTiles = FileMosaicAnalyzer.analyze(tiles, file, saveFile, null);
+            FileMosaicAnalyzer analyzer = new FileMosaicAnalyzer(tiles);
+            Set<MosaicTile<String>> allTiles = analyzer.analyze(file, saveFile, null);
             return "Successfully analyzed " + (allTiles.size() - tiles.size()) + " new tiles and saved "
                     + allTiles.size() + " tiles!";
         } else {
