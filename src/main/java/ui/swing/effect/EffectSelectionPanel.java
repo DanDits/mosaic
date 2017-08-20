@@ -1,29 +1,45 @@
 package ui.swing.effect;
 
-import net.coobird.thumbnailator.Thumbnails;
+import ui.FileBitmapSource;
+import ui.swing.creation.TileMatcherFactory;
+import util.ProgressCallback;
+import util.image.ColorSpace;
 
 import javax.swing.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.URL;
 
 /**
  * Created by dd on 09.08.17.
  */
 public class EffectSelectionPanel {
     private JPanel contentPane;
-    private IconSpinner iconSpinner1;
+    private IconSpinner effectsSpinner;
+    private JTextField name;
+    private JTextField description;
 
     public EffectSelectionPanel() {
-        URL resource = EffectSelectionPanel.class.getResource("icon_lego.png");
-        BufferedImage image = null;
-        try {
-            image = Thumbnails.of(resource).size(50, 50).asBufferedImage();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        iconSpinner1.setIcons(new Icon[] {new ImageIcon(image)});
+        effectsSpinner.init(EffectBuilderItem.makeAll(ColorSpace.RgbEuclid.INSTANCE_WITH_ALPHA,
+                                                      new TileMatcherFactory(),
+                                                      new FileBitmapSource(),
+                                                      new ProgressCallback() {
+                                                          @Override
+                                                          public boolean isCancelled() {
+                                                              return false;
+                                                          }
+
+                                                          @Override
+                                                          public void onProgressUpdate(int progress) {
+                                                              System.out.println("Progress!" + progress);
+                                                          }
+                                                      }));
+        effectsSpinner.addChangeListener(changeEvent -> updateEffectDescription());
     }
+
+    private void updateEffectDescription() {
+        EffectBuilderItem effect = effectsSpinner.getSelectedEffect();
+        name.setText(effect.getName());
+        description.setText(effect.getDescription());
+    }
+
     public JPanel getContentPane() {
         return contentPane;
     }

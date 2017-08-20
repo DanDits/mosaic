@@ -90,6 +90,7 @@ public class FixedLayerReconstructor extends Reconstructor {
         }
         final int width = source.getWidth();
         final int height = source.getHeight();
+        System.out.println("Cluster count" + clusterCount + " pixel count=" + (width * height));
         mResult = obtainBaseBitmap(width, height);
         mClusterBitmaps = new AbstractBitmap[clusterCount];
         int[] pixelColors = new int[width * height];
@@ -105,7 +106,6 @@ public class FixedLayerReconstructor extends Reconstructor {
         Random rand = new Random();
 
         int[] clusterCenters = new int[clusterCount];
-        double[] clusterWeights = new double[clusterCount];
 
         /* //init (with random centers, also other possibilities as convergence greatly depends on starting values)
         for (int i = 0; i < clusterCenters.length; i++) {
@@ -138,9 +138,11 @@ public class FixedLayerReconstructor extends Reconstructor {
         do {
             // for improved speed we expect monotonous convergence in the amount of pixels changed, if this ever increases again we stop
             lastChanged = changed;
+            if (changed < Integer.MAX_VALUE) {
+                System.out.println("Changed=" + changed);
+            }
             changed = 0;
             // redistribute into clusters
-            Arrays.fill(clusterWeights, 0.);
             for (int i = 0; i < pixelColors.length; i++) {
                 int currColor = pixelColors[i];
                 double minWeightIncrease = Double.MAX_VALUE;
@@ -152,7 +154,6 @@ public class FixedLayerReconstructor extends Reconstructor {
                         minWeightIncreaseIndex = cluster;
                     }
                 }
-                clusterWeights[minWeightIncreaseIndex] += minWeightIncrease;
                 int oldNumber = mPixelClusterNumber[i];
                 mPixelClusterNumber[i] = minWeightIncreaseIndex;
                 if (oldNumber != minWeightIncreaseIndex) {
@@ -200,6 +201,7 @@ public class FixedLayerReconstructor extends Reconstructor {
         for (int i = 0; i < clusterCount; i++) {
             calculateClusterOffset(i);
         }
+        System.out.println("Valid clusters:" + Arrays.stream(mClusterBitmapWidth).filter(width -> width > 0).count());
     }
 
     private void calculateClusterOffset(int cluster) {
@@ -237,13 +239,20 @@ public class FixedLayerReconstructor extends Reconstructor {
         if (hasAll()) {
             return null;
         }
-        mFragment = new MosaicFragment(mClusterBitmapWidth[mCurrCluster], mClusterBitmapHeight[mCurrCluster], mClusterColors[mCurrCluster]);
+        int width = mClusterBitmapWidth[mCurrCluster];
+        int height = mClusterBitmapHeight[mCurrCluster];
+        if (width <= 0 || height <= 0) {
+            mCurrCluster++;
+            return nextFragment();
+        }
+        mFragment = new MosaicFragment(width, height, mClusterColors[mCurrCluster]);
         return mFragment;
     }
 
     @Override
     public boolean hasAll() {
-        return mCurrCluster >= mClusterColors.length;
+        return mCurrCluster >= mClusterColors.length
+                || Arrays.stream(mClusterBitmapWidth).skip(mCurrCluster).allMatch(width -> width <= 0);
     }
 
     @Override
