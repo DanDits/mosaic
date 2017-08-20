@@ -18,6 +18,10 @@ public class Point {
         return getComparableDistance(x, y, true) + getComparableDistance(x, y,false);
     }
 
+    public double getComparableDistance(Point other) {
+        return getComparableDistance(other.getX(), other.getY());
+    }
+
     public double getComparableDistance(double x, double y, boolean firstAxis) {
         if (firstAxis) {
             final double dx = (x - this.x);

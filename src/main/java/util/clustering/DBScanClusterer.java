@@ -3,10 +3,12 @@ package util.clustering;
 import util.image.Color;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class DBScanClusterer {
@@ -99,9 +101,11 @@ public class DBScanClusterer {
     }
 
     public static void main(String[] args) {
+        String in = "/home/daniel/IdeaProjects/mosaic/src/main/resources/util/clustering/wikisrc.png";
+        String out = "/home/daniel/IdeaProjects/mosaic/src/main/resources/util/clustering/wikisrc_result.png";
         BufferedImage source;
         try {
-            source = ImageIO.read(new File("/home/dd/clustering/wikisrc.png"));
+            source = ImageIO.read(new File(in));
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -120,6 +124,7 @@ public class DBScanClusterer {
         PointCloud cloud = KDFlatTree.make(new Random(1337), points);
         DBScanClusterer clusterer = new DBScanClusterer(10, 15);
         BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D resultGraphics = result.createGraphics();
         List<Integer> colors = new LinkedList<>();
         colors.add(Color.rgb(255, 0, 0));
         colors.add(Color.rgb(0, 255, 0));
@@ -140,17 +145,32 @@ public class DBScanClusterer {
                 int j = (int) (result.getHeight() - p.getY() - 1);
                 result.setRGB(i, j, color);
             }
+            KMeansClusterer centroidClusterer = doKMeans(cluster);
+            for (Point center : centroidClusterer.getCenters()) {
+                resultGraphics.setColor(java.awt.Color.BLACK);
+                resultGraphics.fillOval((int) center.getX(), (int) (result.getHeight() - center.getY() - 1),
+                        10, 10);
+            }
         }
         for (Point p : clusterer.getAnalyzedNoise()) {
             int i = (int) p.getX();
             int j = (int) (result.getHeight() - p.getY() - 1);
-            result.setRGB(i, j, 0xFFFFFFFF);
+            result.setRGB(i, j, 0xFF000000);
         }
         try {
-            ImageIO.write(result, "png", new File("/home/dd/clustering/wikisrc_result.png"));
+            ImageIO.write(result, "png", new File(out));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private static KMeansClusterer doKMeans(List<Point> cluster) {
+        PointCloud cloud = new CollectionPointCloud(cluster);
+        int clusterCount = 4;
+        Random rnd = new Random(1337);
+        KMeansClusterer clusterer = new KMeansClusterer(rnd, cloud);
+        clusterer.execute(clusterCount);
+        return clusterer;
     }
 }
