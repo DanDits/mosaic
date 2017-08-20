@@ -1,7 +1,5 @@
 package util.clustering;
 
-import util.image.Colorized;
-
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -100,7 +98,9 @@ public class KDFlatTree implements Iterable<Point>, PointCloud {
 
     private List<Point> getPointsInDistance(Point center, double comparableDistance) {
         List<Point> found = new ArrayList<>();
-
+        if (root == null) {
+            return Collections.emptyList();
+        }
         int axis;
         Node current;
         double currentDist;
@@ -134,7 +134,7 @@ public class KDFlatTree implements Iterable<Point>, PointCloud {
         return found;
     }
 
-    private static <D extends Colorized> void pushSearchNode(Stack<Node> nextNodes, Stack<Integer> nextAxis,
+    private static void pushSearchNode(Stack<Node> nextNodes, Stack<Integer> nextAxis,
                                            Node next, int axis) {
         if (next != null) {
             nextNodes.push(next);
@@ -358,21 +358,21 @@ public class KDFlatTree implements Iterable<Point>, PointCloud {
         }
         int axis = depth % DIMENSION;
 
-        Point medianData = approximateMedianArgb(rnd, data, buffer, axis);
+        Point medianData = approximateMedianPoint(rnd, data, buffer, axis);
         double median = getValueByAxis(medianData, axis);
-        List<Point> leftColors = data.stream().filter(ele -> getValueByAxis(ele, axis) < median)
+        List<Point> leftPoints = data.stream().filter(ele -> getValueByAxis(ele, axis) < median)
                                  .collect(Collectors.toList());
-        List<Point> rightColors = data.stream().filter(ele -> getValueByAxis(ele, axis) >= median
+        List<Point> rightPoints = data.stream().filter(ele -> getValueByAxis(ele, axis) >= median
                                                                          && ele != medianData)
                                  .collect(Collectors.toList());
         // recursion depth is approximately logarithmic (base 2) as we use the (approximated) median
         return new Node(medianData,
-                           makeRecursively(rnd, leftColors, buffer, depth + 1),
-                            makeRecursively(rnd, rightColors, buffer, depth + 1));
+                           makeRecursively(rnd, leftPoints, buffer, depth + 1),
+                            makeRecursively(rnd, rightPoints, buffer, depth + 1));
     }
 
-    private static Point approximateMedianArgb(Random rnd, List<Point> data,
-                                             double[] buffer, int axis) {
+    private static Point approximateMedianPoint(Random rnd, List<Point> data,
+                                                double[] buffer, int axis) {
         int dataSize = data.size();
         int sampleSize = getSampleSize(dataSize);
         for (int i = 0; i < sampleSize; i++) {
@@ -385,7 +385,6 @@ public class KDFlatTree implements Iterable<Point>, PointCloud {
         }
         Arrays.sort(buffer, 0, sampleSize);
         double medianValue = buffer[sampleSize / 2];
-        // we want the total argb not only the value we sorted after, but the colors array is sorted differently
         for (int i = 0; i < sampleSize; i++) {
             Point current = data.get(i);
             if (getValueByAxis(current, axis) == medianValue) {

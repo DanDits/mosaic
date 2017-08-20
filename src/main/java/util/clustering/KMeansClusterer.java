@@ -11,10 +11,20 @@ public class KMeansClusterer {
     private final PointCloud cloud;
     private Point[] clusterCenters;
     private List<Point> all;
+    private int[] pointClusterIndex;
+    private double[] minDists;
+    private double[] maxDists;
 
     public KMeansClusterer(Random rnd, PointCloud cloud) {
         this.rnd = rnd;
         this.cloud = cloud;
+    }
+
+    public int getParameterClusterCount() {
+        if (clusterCenters == null) {
+            return 0;
+        }
+        return clusterCenters.length;
     }
 
     public void execute(int clusterCount) {
@@ -26,14 +36,15 @@ public class KMeansClusterer {
         if (clusterCount < 1) {
             throw new IllegalArgumentException("No clusters?!" + clusterCount);
         }
+        minDists = null;
+        maxDists = null;
         if (all == null || clusterCenters == null) {
             all = new ArrayList<>(cloud.getAll());  // we want random access
             clusterCenters = new Point[clusterCount];
             initCenters(clusterCount, Collections.emptyList());
         } else {
-            List<Point> oldCenters = Arrays.stream(clusterCenters)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+            // do not update all, we do not support changes in the PointCloud over different runs
+            List<Point> oldCenters = getValidCenters();
             clusterCenters = new Point[clusterCount];
             initCenters(clusterCount, oldCenters);
         }
@@ -90,7 +101,8 @@ public class KMeansClusterer {
     private void run(int clusterCount) {
         // k-means algorithm
         final int allCount = all.size();
-        final int[] pointClusterIndex = new int[allCount];
+
+        pointClusterIndex = new int[allCount];
         final double[] valuesX = new double[clusterCount];
         final double[] valuesY = new double[clusterCount];
         final int[] clusterSize = new int[clusterCount];
@@ -101,22 +113,24 @@ public class KMeansClusterer {
         do {
             lastChanged = changed;
             changed = 0;
-            // redistribute into clusters
-            for (int i = 0; i < allCount; i++) {
-                Point current = all.get(i);
-                double minWeightIncrease = Double.MAX_VALUE;
-                int minWeightIncreaseIndex = 0;
-                for (int cluster = 0; cluster < clusterCount; cluster++) {
-                    double currWeightIncrease = clusterCenters[cluster].getComparableDistance(current);
-                    if (currWeightIncrease < minWeightIncrease) {
-                        minWeightIncrease = currWeightIncrease;
-                        minWeightIncreaseIndex = cluster;
+            if (clusterCount > 0) {
+                // redistribute into clusters (only meaningful for more than one cluster)
+                for (int i = 0; i < allCount; i++) {
+                    Point current = all.get(i);
+                    double minWeightIncrease = Double.MAX_VALUE;
+                    int minWeightIncreaseIndex = 0;
+                    for (int cluster = 0; cluster < clusterCount; cluster++) {
+                        double currWeightIncrease = clusterCenters[cluster].getComparableDistance(current);
+                        if (currWeightIncrease < minWeightIncrease) {
+                            minWeightIncrease = currWeightIncrease;
+                            minWeightIncreaseIndex = cluster;
+                        }
                     }
-                }
-                int oldNumber = pointClusterIndex[i];
-                pointClusterIndex[i] = minWeightIncreaseIndex;
-                if (oldNumber != minWeightIncreaseIndex) {
-                    changed++;
+                    int oldNumber = pointClusterIndex[i];
+                    pointClusterIndex[i] = minWeightIncreaseIndex;
+                    if (oldNumber != minWeightIncreaseIndex) {
+                        changed++;
+                    }
                 }
             }
 
@@ -142,9 +156,59 @@ public class KMeansClusterer {
         } while (changed > 0 && changed <= lastChanged && redistributionCount < maxRedistributions);
     }
 
-    public List<Point> getCenters() {
+
+    public List<Double> getMinComparableDistancesToValidCenters() {
+        if (minDists == null) {
+            calculateMinAndMaxDistanceToValidCenters();
+        }
+        List<Double> dists = new ArrayList<>(minDists.length);
+        for (int i = 0; i < clusterCenters.length; i++) {
+            if (isCenterValid(clusterCenters[i])) {
+                dists.add(minDists[i]);
+            }
+        }
+        return dists;
+    }
+
+    public List<Double> getMaxComparableDistancesToValidCenters() {
+        if (maxDists == null) {
+            calculateMinAndMaxDistanceToValidCenters();
+        }
+        List<Double> dists = new ArrayList<>(maxDists.length);
+        for (int i = 0; i < clusterCenters.length; i++) {
+            if (isCenterValid(clusterCenters[i])) {
+                dists.add(maxDists[i]);
+            }
+        }
+        return dists;
+    }
+
+
+    private void calculateMinAndMaxDistanceToValidCenters() {
+        minDists = new double[clusterCenters.length];
+        Arrays.fill(minDists, Double.MAX_VALUE);
+        maxDists = new double[clusterCenters.length];
+        int allCount = all.size();
+        for (int i = 0; i < allCount; i++) {
+            Point curr = all.get(i);
+            int cluster = this.pointClusterIndex[i];
+            double dist = curr.getComparableDistance(clusterCenters[cluster]);
+            minDists[cluster] = Math.min(minDists[cluster], dist);
+            maxDists[cluster] = Math.max(maxDists[cluster], dist);
+        }
+    }
+
+    private boolean isCenterValid(Point center) {
+        return Objects.nonNull(center);
+    }
+
+    public List<Point> getValidCenters() {
         return Arrays.stream(clusterCenters)
-                .filter(Objects::nonNull)
+                .filter(this::isCenterValid)
                 .collect(Collectors.toList());
+    }
+
+    public int getPointsCount() {
+        return cloud.size();
     }
 }
